@@ -1,0 +1,26 @@
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\bin\Debug\connect4_client.exe.config
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\bin\Debug\connect4_client.exe
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\bin\Debug\connect4_client.pdb
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.csproj.AssemblyReference.cache
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.change_password.resources
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.chess.resources
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\connect4_client.login.resources
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\connect4_client.Properties.Resources.resources
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.register.resources
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.csproj.GenerateResource.cache
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\chessair_client.csproj.CoreCompileInputs.cache
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\connect4_client.exe
+C:\Users\roey2\OneDrive\Desktop\chess air\chess air_client\obj\Debug\connect4_client.pdb
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\bin\Debug\connect4_client.exe.config
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\bin\Debug\connect4_client.exe
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\bin\Debug\connect4_client.pdb
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.csproj.AssemblyReference.cache
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.change_password.resources
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.chess.resources
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.login.resources
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.Properties.Resources.resources
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.register.resources
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.csproj.GenerateResource.cache
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.csproj.CoreCompileInputs.cache
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.exe
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.pdb
