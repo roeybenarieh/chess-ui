@@ -17,12 +17,15 @@ namespace chessair_client
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            ///
-            //Application.Run(new chessair());
-            Application.Run(new login());
-            System.Windows.Forms.Application.Exit();
+            for (int i = 0; i < 100; i++)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                ///
+                //Application.Run(new chessair());
+                Application.Run(new login());
+                System.Windows.Forms.Application.Exit();
+            }
         }
 
         public static void SendMessage(string message)

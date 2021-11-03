@@ -13,6 +13,8 @@ namespace connect4_client
 {
     public partial class login : Form
     {
+        Button[] capchab = new Button[6];
+
         public login(Form f = null)
         {
             if(f !=null)
@@ -72,7 +74,10 @@ namespace connect4_client
                 }
                 else
                 { //login == "verify"
-                    Program.SendMessage("###mail###" + password.Text);
+                    Boolean first = this.capchab[0].BackColor == Color.Green;
+                    Boolean second = this.capchab[2].BackColor == Color.Green;
+                    Boolean third = this.capchab[4].BackColor == Color.Green;
+                    Program.SendMessage("###mail+capcha###" + password.Text + "%" + first + "%" + second + "%" + third);
                     outputtext.Text = "";
                     Program.client.GetStream().BeginRead(Program.data,
                                                              0,
@@ -105,7 +110,7 @@ namespace connect4_client
                     // invoke the delegate to display the recived data
                     string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
                     // what happen after the cliant register - what the server returns and what happen as a result
-                    if (textFromServer == "login done")
+                    if (textFromServer.StartsWith("login done"))
                     {
                         this.BeginInvoke((MethodInvoker)delegate () {
                             label2.Visible = false;
@@ -116,7 +121,40 @@ namespace connect4_client
                             username.Visible = false;
                             password.Text = "";
                             loginbutton.Text = "verify";
+                            loginbutton.Location = new Point(570, 323);
                             label3.Text = "recived code:";
+                            //
+                            string[] capchas = textFromServer.Split('%');
+                            capchas = capchas;
+                            for (int i = 0; i < 3; i++)
+                            {
+                                Label capcha = new Label();
+                                capcha.Text = capchas[i + 1];
+                                capcha.Size = new System.Drawing.Size(550, 70);
+                                capcha.Location = new Point(62, i * 80 + 20);
+                                capcha.Font = new Font("Impact", 11);
+                                Controls.Add(capcha);
+
+                                Button capchabp = new Button();
+                                this.capchab[i * 2] = capchabp;
+                                capchabp.Name = Convert.ToString(i * 2);
+                                capchabp.Location = new Point(620, 30 + i * 80);
+                                capchabp.Size = new Size(60, 60);
+                                capchabp.Text = "positive";
+                                capchabp.BackColor = Color.Transparent;
+                                capchabp.Click += new System.EventHandler(this.capcha_Click);
+                                Controls.Add(capchabp);
+
+                                Button capchabn = new Button();
+                                this.capchab[(i * 2) + 1] = capchabn;
+                                capchabn.Name = Convert.ToString((i * 2) + 1);
+                                capchabn.Location = new Point(690, 30 + i * 80);
+                                capchabn.Size = new Size(60, 60);
+                                capchabn.Text = "negative";
+                                capchabn.BackColor = Color.Transparent;
+                                capchabn.Click += new System.EventHandler(this.capcha_Click);
+                                Controls.Add(capchabn);
+                            }
                         });
                     }
                     else if (textFromServer == "code done")
@@ -133,7 +171,7 @@ namespace connect4_client
                         change_password change_password = new change_password(this,"one mounth past, its time to change your password..");
                         change_password.ShowDialog();
                     }
-                    else if (textFromServer == "code incorect")
+                    else if (textFromServer == "code or captcha incorect")
                     {
                         change_outputtext_txt("the verefication code is incorrect ");
                     }
@@ -163,6 +201,32 @@ namespace connect4_client
             outputtext.BeginInvoke((MethodInvoker)delegate () {
                 outputtext.Text = s;
             });
+        }
+        private void capcha_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Button button = sender as Button;
+                if (button.BackColor == Color.Transparent)
+                {
+                    if (Int32.Parse(button.Name) % 2 == 0) //positive button
+                    {
+                        button.BackColor = Color.Green;
+                        capchab[Int32.Parse(button.Name) + 1].BackColor = Color.Transparent;
+                    }
+                    else//negative button
+                    {
+                        button.BackColor = Color.Red;
+                        capchab[Int32.Parse(button.Name) - 1].BackColor = Color.Transparent;
+                    }
+                }
+                else
+                    return;
+            }
+            catch (Exception ex)
+            {
+                // ignor the error... fired when the user loggs off
+            }
         }
     }
 }

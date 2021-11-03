@@ -27,6 +27,7 @@ namespace Server
         private String username;
         private String mailcode;
         private Boolean ready_to_play = false;
+        private string[] captcha = new string[3];
         _1v1 game;
 
         // used for sending and reciving data
@@ -131,7 +132,16 @@ namespace Server
                             this.mailcode = new String(stringChars);
                             if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(userdata[0])) || true)/////////////////////////////doesnt count email!!!!!!
                             {
-                                SendMessage("login done");
+                                string message = "login done";
+                                for (int i = 0; i < 3; i++)
+                                {
+                                    string[] tmp = MainProgram.get_random_captcha();
+                                    captcha[i] = tmp[1];
+                                    if (tmp[0].Equals(""))
+                                        Console.WriteLine("there is a problem.. if this breakpoint didnt work for a long time i can delete it");
+                                    message += "%" + tmp[0];
+                                }
+                                SendMessage(message);
                                 username = userdata[0];
                             }
                             else
@@ -142,20 +152,28 @@ namespace Server
                             SendMessage("login not done");
                         }
                     }
-                    else if (messageReceived.StartsWith("###mail###"))// window1- confirm email
+                    else if (messageReceived.StartsWith("###mail+capcha###"))// window1- confirm email
                     {
-                        String code = messageReceived.Remove(0, 10);
-                        if (mailcode.Equals(code) || true)
-                        { ///////////////////////////////doesnt count email!!!!!!
+                        String message = messageReceived.Remove(0, 17);
+                        string[] data = message.Split('%');
+                        for (int i = 1; i < data.Length; i++)
+                        {
+                            if (data[i] == "True")
+                                data[i] = "pos";
+                            else
+                                data[i] = "neg";
+                        }
+                        if ( (mailcode.Equals(data[0]) && data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2])) || true )
+                        {
                             string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
                             string[] last_date = DBH.get_last_password_change(this.username).Split('/');
-                            if (!today_date[1].Equals(last_date[1])) //////////////////////////////////////////////////////////////change trueeeee
+                            if (!today_date[1].Equals(last_date[1]))
                                 SendMessage("code done - change password");
                             else
                                 SendMessage("code done");
                         }
                         else
-                            SendMessage("code incorect");
+                            SendMessage("code or captcha incorect");
                     }
                     //
                     else if (messageReceived.StartsWith("###regist###"))// window2- registration

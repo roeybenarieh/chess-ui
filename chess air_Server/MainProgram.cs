@@ -14,7 +14,7 @@ namespace Server
 
         public static void Main(string[] args)
         {
-            string[] str = get_random_captcha();
+
             System.Net.IPAddress localAdd = System.Net.IPAddress.Parse(ipAddress);
 
             TcpListener listener = new TcpListener(localAdd, portNo);
@@ -69,7 +69,7 @@ namespace Server
             //str[0] = the words
             //str[1] = the Sentiment Analysis answer
             string[] str = new string[2];
-            var random = new Random();
+            Random random = new Random();
             string sourceDirectory = "";
             if (random.Next(2) == 0)
             {//half a chace to be positive and half a chance to be negative
@@ -85,22 +85,37 @@ namespace Server
             try
             {
                 var txtFiles = Directory.EnumerateFiles(sourceDirectory, "*.txt");
-                int filenum = random.Next(12500);
+                int filenum = random.Next(1000);//12500 txt files exist
                 int count = 0;
                 foreach (string currentFile in txtFiles)
                 {
                     if (count == filenum)
                     {
-                        string fileName = currentFile.Substring(sourceDirectory.Length + 1);
+                        //string fileName = currentFile.Substring(sourceDirectory.Length + 1);
 
                         using (StreamReader r = File.OpenText(currentFile))
                         {
                             string line;
                             while ((line = r.ReadLine()) != null)
                             {
+                                line = line.Replace("<br /><br />", "     ");
                                 string[] info = line.Split('.');
-                                str[0] = info[0] + "." + info[1];
-                                return str;
+                                if (line.Length < 50)
+                                    return get_random_captcha();
+                                else
+                                {
+                                    int charcount = 0;
+                                    for(int i=0;i< info.Length; i++)
+                                    {
+                                        charcount += info[i].Length;
+                                        if (charcount>230)
+                                        {
+                                            return str;
+                                        }
+                                        str[0] += info[i] + ".";
+                                    }
+                                    return get_random_captcha();
+                                }
                             }
                         }
                     }
@@ -112,8 +127,7 @@ namespace Server
             {
                 Console.WriteLine(e.Message);
             }
-
-            return null;
+            return get_random_captcha();
         }
 
 
