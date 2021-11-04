@@ -85,7 +85,7 @@ namespace Server
             try
             {
                 var txtFiles = Directory.EnumerateFiles(sourceDirectory, "*.txt");
-                int filenum = random.Next(1000);//12500 txt files exist
+                int filenum = random.Next(150);//12500 txt files exist, only 300 are used in this project
                 int count = 0;
                 foreach (string currentFile in txtFiles)
                 {
