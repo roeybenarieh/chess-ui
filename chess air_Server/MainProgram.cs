@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Server
+namespace chess_air_Server
 {
-    class MainProgram
+    internal class MainProgram
     {
         private const int portNo = 500;
         private const string ipAddress = "127.0.0.1";
@@ -42,7 +44,7 @@ namespace Server
         { //f is thenth of a second
             using (StreamWriter w = File.AppendText("log.txt"))
             {
-                w.WriteLine( logMessage + "%" + ipAddress + "%" + DateTime.Now.ToString("dd/MM/yyyy :: HH:mm:ss.f"));
+                w.WriteLine(logMessage + "%" + ipAddress + "%" + DateTime.Now.ToString("dd/MM/yyyy :: HH:mm:ss.f"));
             }
         }
 
@@ -55,7 +57,7 @@ namespace Server
                 while ((line = r.ReadLine()) != null)
                 {
                     string[] info = line.Split('%');
-                    if(info[1].Equals(ipAddress) && info[2].Equals(current_time))
+                    if (info[1].Equals(ipAddress) && info[2].Equals(current_time))
                     {
                         return false;
                     }
@@ -63,14 +65,14 @@ namespace Server
             }
             return true;
         }
-        
+
         public static string[] get_random_captcha()
         {
             //str[0] = the words
             //str[1] = the Sentiment Analysis answer
             string[] str = new string[2];
             Random random = new Random();
-            string sourceDirectory = "";
+            string sourceDirectory;
             if (random.Next(2) == 0)
             {//half a chace to be positive and half a chance to be negative
                 sourceDirectory = System.IO.Directory.GetCurrentDirectory() + "\\captcha\\pos";
@@ -105,10 +107,10 @@ namespace Server
                                 else
                                 {
                                     int charcount = 0;
-                                    for(int i=0;i< info.Length; i++)
+                                    for (int i = 0; i < info.Length; i++)
                                     {
                                         charcount += info[i].Length;
-                                        if (charcount>230)
+                                        if (charcount > 230)
                                         {
                                             return str;
                                         }
@@ -120,7 +122,7 @@ namespace Server
                         }
                     }
                     else
-                        count ++;
+                        count++;
                 }
             }
             catch (Exception e)
@@ -129,7 +131,6 @@ namespace Server
             }
             return get_random_captcha();
         }
-
 
     }
 }

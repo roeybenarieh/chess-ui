@@ -4,13 +4,13 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
-
-namespace Server
+namespace chess_air_Server
 {
     class DBH
     {
-        private static String connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\DB.mdf;Integrated Security=True";
+        private static String connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename="+ get_local_db_Filename() +";Integrated Security=True";
         private static SqlConnection sqlConnection = new SqlConnection(connectionString);
         private static SqlCommand cmd = new SqlCommand();
         private static SHA512 shaM = new SHA512Managed();
@@ -19,20 +19,20 @@ namespace Server
 
         public static Boolean IsUsernameExist(String username) //if their is a username with that name
         {
-                String stm = "select count(username) from users where username='" + gethash(username) + "'";
-                cmd.Connection = sqlConnection;
-                cmd.CommandText = stm;
-                sqlConnection.Open();
-                int count = (int)cmd.ExecuteScalar();//Executenonquery();
-                sqlConnection.Close();
-                if (count >= 1) { return true; }
-                else { return false; }
+            String stm = "select count(username) from users where username='" + gethash(username) + "'";
+            cmd.Connection = sqlConnection;
+            cmd.CommandText = stm;
+            sqlConnection.Open();
+            int count = (int)cmd.ExecuteScalar();//Executenonquery();
+            sqlConnection.Close();
+            if (count >= 1) { return true; }
+            else { return false; }
         }
 
         public static Boolean InsertNewUser(String client_data) // inserting client data if he doesnt exist already // return if did the action
         {
             String[] usepass = client_data.Split('&');
-            if (! IsUsernameExist(usepass[0])&& usepass.Length>=2)
+            if (!IsUsernameExist(usepass[0]) && usepass.Length >= 2)
             {
                 usepass[0] = gethash(usepass[0]);
                 usepass[1] = gethash(usepass[1]);
@@ -47,8 +47,8 @@ namespace Server
                     else
                         usepass[i] = "'" + usepass[i] + "'";
                 }
-                string stm = "insert into users (username,password,nickname,mail,age,country,city) values (" + usepass[0] + "," + usepass[1] + "," + usepass[2] + "," + usepass[3] + "," + usepass[4] + "," + usepass[5] + "," + usepass[6]+ ")";
-                
+                string stm = "insert into users (username,password,nickname,mail,age,country,city) values (" + usepass[0] + "," + usepass[1] + "," + usepass[2] + "," + usepass[3] + "," + usepass[4] + "," + usepass[5] + "," + usepass[6] + ")";
+
                 cmd.Connection = sqlConnection;
                 cmd.CommandText = stm;
                 sqlConnection.Open();
@@ -92,7 +92,7 @@ namespace Server
             sqlConnection.Close();
             return mail;
         }
-        
+
         public static string get_last_password_change(String username)
         {
             String stm = "select change_password from users where username='" + gethash(username) + "'";
@@ -122,7 +122,7 @@ namespace Server
 
         public static Boolean change_password(String username, String new_password)
         {
-            String stm = "UPDATE users SET password = '"+ gethash(new_password)+ "', change_password = getdate() WHERE username = '"+ gethash(username) +"'; ";
+            String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = getdate() WHERE username = '" + gethash(username) + "'; ";
             cmd.Connection = sqlConnection;
             cmd.CommandText = stm;
             sqlConnection.Open();
@@ -133,5 +133,21 @@ namespace Server
             return false;
         }
 
+        private static string get_local_db_Filename()
+        {
+            string directory ="";
+            // System.IO.Directory.GetCurrentDirectory() == C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug
+            string[] positions = System.IO.Directory.GetCurrentDirectory().Split('\\');
+            foreach(string position in positions)
+            {
+                directory += position+"\\";
+                if(position.Equals("chess air_Server"))
+                {
+                    directory += "DB.mdf";
+                    return directory;
+                }
+            }
+            return "something went wrong";
+        }
     }
 }

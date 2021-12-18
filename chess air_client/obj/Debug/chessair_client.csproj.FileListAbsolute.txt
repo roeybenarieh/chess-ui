@@ -24,3 +24,4 @@ C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_cli
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.csproj.CoreCompileInputs.cache
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.exe
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\connect4_client.pdb
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_client\obj\Debug\chessair_client.csproj.SuggestedBindingRedirects.cache

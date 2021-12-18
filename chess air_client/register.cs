@@ -106,7 +106,7 @@ namespace chessair_client
                     }
                     else if(textFromServer == "regist mail incorrect")
                     {
-                        outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = "mail isnt correct"; });
+                        outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = "server couldnt confirm youre mail"; });
                     }
                     else if (textFromServer == "username already exist!")
                     {

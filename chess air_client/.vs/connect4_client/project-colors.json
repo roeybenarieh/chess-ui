@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "e0798118-6001-4697-9870-8e6634026964": {
+      "ProjectGuid": "e0798118-6001-4697-9870-8e6634026964",
+      "DisplayName": "chessair_client",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

@@ -23,7 +23,7 @@ namespace chessair_client
             {
                 f.Hide();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 f.BeginInvoke((MethodInvoker)delegate () { f.Hide(); });
             }
@@ -34,6 +34,12 @@ namespace chessair_client
 
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
+            System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red);
+            System.Drawing.Graphics formGraphics;
+            formGraphics = this.CreateGraphics();
+            formGraphics.FillRectangle(myBrush, new Rectangle(0, 0, 200, 300));
+            myBrush.Dispose();
+            formGraphics.Dispose();
             for (int i = 0; i < 7; i++)// טור
             {
                 for (int j = 0; j < 6; j++)// שורה
