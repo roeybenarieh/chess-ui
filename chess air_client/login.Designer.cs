@@ -51,7 +51,7 @@
             this.label1.ForeColor = System.Drawing.Color.OrangeRed;
             this.label1.Location = new System.Drawing.Point(312, 19);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(208, 116);
+            this.label1.Size = new System.Drawing.Size(207, 116);
             this.label1.TabIndex = 0;
             this.label1.Text = "login";
             // 
@@ -160,7 +160,6 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackgroundImage = global::connect4_client.Properties.Resources.backgroundimg;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(795, 442);
             this.Controls.Add(this.pictureBox2);

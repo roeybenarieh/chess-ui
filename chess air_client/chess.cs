@@ -35,11 +35,10 @@ namespace chessair_client
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
             System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red);
-            System.Drawing.Graphics formGraphics;
-            formGraphics = this.CreateGraphics();
-            formGraphics.FillRectangle(myBrush, new Rectangle(0, 0, 200, 300));
-            myBrush.Dispose();
-            formGraphics.Dispose();
+            System.Drawing.Graphics formGraphics = this.CreateGraphics();
+
+            const int rectangesize = 60;
+            const int margin = 10;
             for (int i = 0; i < 7; i++)// טור
             {
                 for (int j = 0; j < 6; j++)// שורה
@@ -47,11 +46,16 @@ namespace chessair_client
                     button[i,j] = new Button();
                     button[i, j].Name = i + "," + j;
                     //button[i, j].Text = i + "," + j;
-                    button[i, j].Location = new Point(70 * (i + 1)-50, 70 * (j + 1)-50);
-                    button[i, j].Size = new Size(60, 60);
+                    int x_location = 70 * (i + 1) - 50;
+                    int y_location = 70 * (j + 1) - 50;
+                    button[i, j].Location = new Point(x_location, y_location);
+                    button[i, j].Size = new Size(rectangesize, rectangesize);
                     button[i, j].FlatStyle = FlatStyle.Flat;
                     button[i, j].FlatAppearance.BorderSize = 0;
-                    button[i, j].BackColor = Color.Transparent;
+                    if(i==2)
+                        button[i, j].BackColor = Color.Red;
+                    else
+                        button[i, j].BackColor = Color.Transparent;
                     button[i, j].BackgroundImage = imageList1.Images[2];
                     button[i, j].BackgroundImageLayout = ImageLayout.Center;
                     ///
@@ -59,9 +63,11 @@ namespace chessair_client
                     button[i, j].MouseLeave += new System.EventHandler(this.Mouse_Leave);
                     button[i, j].Click += new System.EventHandler(this.button_Click);
                     Controls.Add(button[i, j]);
+                    formGraphics.FillRectangle(myBrush, new Rectangle(x_location- margin, y_location- margin, rectangesize + margin, rectangesize+ margin));
                 }
             }
-            //
+            myBrush.Dispose();
+            formGraphics.Dispose();
         }
 
         private void Mouse_Hover(object sender, EventArgs e)

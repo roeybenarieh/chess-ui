@@ -102,7 +102,7 @@ namespace chess_air_Server
                             {
                                 line = line.Replace("<br /><br />", "     ");
                                 string[] info = line.Split('.');
-                                if (line.Length < 50)
+                                if (line.Length < 50)// the overall text is less than 50 characters
                                     return get_random_captcha();
                                 else
                                 {
@@ -110,11 +110,13 @@ namespace chess_air_Server
                                     for (int i = 0; i < info.Length; i++)
                                     {
                                         charcount += info[i].Length;
+                                        str[0] += info[i] + ".";
                                         if (charcount > 230)
                                         {
+                                            if (str[0] == null)
+                                                Console.WriteLine("something went wrong - capcha didnt perform well");
                                             return str;
                                         }
-                                        str[0] += info[i] + ".";
                                     }
                                     return get_random_captcha();
                                 }
@@ -125,9 +127,9 @@ namespace chess_air_Server
                         count++;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e.Message);
+                return get_random_captcha();
             }
             return get_random_captcha();
         }

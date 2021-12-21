@@ -112,7 +112,7 @@ namespace connect4_client
                     // what happen after the cliant register - what the server returns and what happen as a result
                     if (textFromServer.StartsWith("login done"))
                     {
-                        this.BeginInvoke((MethodInvoker)delegate () {
+                         this.BeginInvoke((MethodInvoker)delegate () {
                             label2.Visible = false;
                             pictureBox1.Visible = false;
                             pictureBox2.Visible = false;
