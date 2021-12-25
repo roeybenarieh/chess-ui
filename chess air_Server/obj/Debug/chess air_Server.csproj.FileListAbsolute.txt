@@ -18,3 +18,8 @@ C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\obj\Debug\chess air_Se
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\obj\Debug\chess air_Server.csproj.CoreCompileInputs.cache
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\obj\Debug\chess air_Server.exe
 C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\obj\Debug\chess air_Server.pdb
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug\chess.pdb
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug\chess.exe.config
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\obj\Debug\chess air_Server.csproj.CopyComplete
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug\chess.dll
+C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug\chess.dll.config

@@ -116,7 +116,7 @@ namespace chessair_client
                         outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = textFromServer; });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
             }

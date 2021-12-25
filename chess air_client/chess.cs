@@ -13,9 +13,20 @@ namespace chessair_client
     public partial class chess : Form
     {
 
-        private Button[,] button = new Button[7,6];
-        private Boolean match_turn =false;
-        private int mycolor;
+        public const int Pawn = 0;
+        public const int Knight = 1;
+        public const int Bishop = 2;
+        public const int Rook = 3;
+        public const int Queen = 4;
+        public const int King = 5;
+        public const int dot = 12;
+        private const int boardsize = 8;
+
+        private Button[,] board = new Button[boardsize, boardsize];
+        private Boolean my_turn =false;
+        private Boolean iswhite = true;
+        private string xymarkedpeace = null; // X,Y format
+        List<string> markedmoves = new List<string>(); 
 
         public chess(Form f)
         {
@@ -34,97 +45,125 @@ namespace chessair_client
 
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
-            System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red);
-            System.Drawing.Graphics formGraphics = this.CreateGraphics();
+            const int rectangesize = 80;
+            const int boarders_from_window_diagonal = 30;
+            const int boarders_from_window_verticale = 350;
+            this.my_nickname.BeginInvoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (rectangesize * boardsize));});
 
-            const int rectangesize = 60;
-            const int margin = 10;
-            for (int i = 0; i < 7; i++)// טור
+            this.oponent_nickname.BeginInvoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
+            for (int i = 0; i < boardsize; i++)// טור
             {
-                for (int j = 0; j < 6; j++)// שורה
+                for (int j = 0; j < boardsize; j++)// שורה
                 {
-                    button[i,j] = new Button();
-                    button[i, j].Name = i + "," + j;
-                    //button[i, j].Text = i + "," + j;
-                    int x_location = 70 * (i + 1) - 50;
-                    int y_location = 70 * (j + 1) - 50;
-                    button[i, j].Location = new Point(x_location, y_location);
-                    button[i, j].Size = new Size(rectangesize, rectangesize);
-                    button[i, j].FlatStyle = FlatStyle.Flat;
-                    button[i, j].FlatAppearance.BorderSize = 0;
-                    if(i==2)
-                        button[i, j].BackColor = Color.Red;
+                    board[i,j] = new Button();
+                    board[i, j].Name = i + "," + j;
+                    board[i, j].Text = i + "," + j;
+                    board[i, j].Location = new Point(rectangesize * i + boarders_from_window_verticale , rectangesize * j + boarders_from_window_diagonal);
+                    board[i, j].Size = new Size(rectangesize, rectangesize);
+                    board[i, j].FlatStyle = FlatStyle.Flat;
+                    board[i, j].FlatAppearance.BorderSize = 5;
+                    if ((i + j) % 2 == 0)
+                        board[i, j].BackColor = Color.Green;
                     else
-                        button[i, j].BackColor = Color.Transparent;
-                    button[i, j].BackgroundImage = imageList1.Images[2];
-                    button[i, j].BackgroundImageLayout = ImageLayout.Center;
-                    ///
-                    button[i, j].MouseHover += new System.EventHandler(this.Mouse_Hover);
-                    button[i, j].MouseLeave += new System.EventHandler(this.Mouse_Leave);
-                    button[i, j].Click += new System.EventHandler(this.button_Click);
-                    Controls.Add(button[i, j]);
-                    formGraphics.FillRectangle(myBrush, new Rectangle(x_location- margin, y_location- margin, rectangesize + margin, rectangesize+ margin));
-                }
-            }
-            myBrush.Dispose();
-            formGraphics.Dispose();
-        }
+                        board[i, j].BackColor = Color.White;
 
-        private void Mouse_Hover(object sender, EventArgs e)
-        { //handle what happen if mouse hover over a button
-            Button sp_button = sender as Button;
-            String[] position = sp_button.Name.Split(',');
-            for (int j = 0; j < 6; j++)// שורה
-            {
-                if (same_images(button[Int32.Parse(position[0]), j].BackgroundImage, imageList1.Images[2]))
-                {
-                    button[Int32.Parse(position[0]), j].BackgroundImage = my_tiny_color_image();
+                    board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
+                    board[i, j].BackgroundImageLayout = ImageLayout.Center;
+                    ///
+                    board[i, j].Click += new System.EventHandler(this.button_Click);
+                    Controls.Add(board[i, j]);
                 }
-                else
-                    j = 7;
             }
+            put_peaces();
         }
         
-        private void Mouse_Leave(object sender, EventArgs e)
-        {//handle what happen if mouse stop hover over a button
-            Button sp_button = sender as Button;
-            String[] position = sp_button.Name.Split(',');
-            for (int j = 0; j < 6; j++)// שורה
+        //sets all of the peaces in a start chess game position
+        private void put_peaces()
+        {
+            void changebackgroundimage(Button button, int peacenum)
             {
-                if (same_images(button[Int32.Parse(position[0]), j].BackgroundImage , my_tiny_color_image()))
+                button.BackgroundImage = imageList1.Images[peacenum];
+                button.Tag = peacenum.ToString();
+            }
+            // make the board blank
+            for (int i = 0; i < boardsize; i++)// טור
+            {
+                for (int j = 0; j < boardsize; j++)// שורה
                 {
-                    button[Int32.Parse(position[0]), j].BackgroundImage = imageList1.Images[2];
+                    this.board[0, 0].BackgroundImage = null;
                 }
             }
+            int uptowhite = 0;
+            int downtowhite = 0;
+            int kingjpos;
+            int queenjpos;
+            if (this.iswhite)
+            {
+                kingjpos=4;
+                queenjpos=3;
+                downtowhite = 6;
+            }
+            else
+            {
+                uptowhite = 6;
+                kingjpos = 3;
+                queenjpos = 4;
+            }
+            //up peaces
+            //first row:
+            changebackgroundimage(this.board[0, 0], Rook + uptowhite);
+            changebackgroundimage(this.board[1, 0], Knight + uptowhite);
+            changebackgroundimage(this.board[2, 0], Bishop + uptowhite);
+            changebackgroundimage(this.board[queenjpos, 0], Queen + uptowhite);
+            changebackgroundimage(this.board[kingjpos, 0], King + uptowhite);
+            changebackgroundimage(this.board[5, 0], Bishop + uptowhite);
+            changebackgroundimage(this.board[6, 0], Knight + uptowhite);
+            changebackgroundimage(this.board[7, 0], Rook + uptowhite);
+            //second row:
+            for (int i = 0; i < boardsize; i++)
+            {
+                changebackgroundimage(this.board[i,1], Pawn + uptowhite);
+            }
+
+            //down peaces
+            //first row:
+            changebackgroundimage(this.board[0, 7], Rook +   downtowhite);
+            changebackgroundimage(this.board[1, 7], Knight + downtowhite);
+            changebackgroundimage(this.board[2, 7], Bishop + downtowhite);
+            changebackgroundimage(this.board[queenjpos, 7], Queen +  downtowhite);
+            changebackgroundimage(this.board[kingjpos, 7], King +   downtowhite);
+            changebackgroundimage(this.board[5, 7], Bishop + downtowhite);
+            changebackgroundimage(this.board[6, 7], Knight + downtowhite);
+            changebackgroundimage(this.board[7, 7], Rook +   downtowhite);
+            //second row:
+            for (int i = 0; i < boardsize; i++)
+            {
+                changebackgroundimage(this.board[i,6], Pawn + downtowhite);
+            }
+
         }
 
-        private void initialize_board()
-        { // make the board blank
-            for (int i = 0; i < 7; i++)// טור
-            {
-                for (int j = 0; j < 6; j++)// שורה
-                {
-                        button[i, j].BackgroundImage = imageList1.Images[2];
-                }
-            }
-        }
 
         private void Start_game_vizualy(string mynick, string oppnick)// chnage the form componnent for the game
         {
-            initialize_board();
+            put_peaces();
             outcome_tx.BeginInvoke((MethodInvoker)delegate () { outcome_tx.Text = "";                                     });
-            play.BeginInvoke((MethodInvoker)delegate ()       { play.Visible = false;                                     });
-            me.BeginInvoke((MethodInvoker)delegate ()         { me.Text = mynick; this.me.Visible = true;                 });
-            oponent.BeginInvoke((MethodInvoker)delegate ()    { oponent.Text = oppnick; this.oponent.Visible = true; });
+            play_friend.BeginInvoke((MethodInvoker)delegate ()       { play_friend.Visible = false;                                     });
+            playai.BeginInvoke((MethodInvoker)delegate () { playai.Visible = false; });
+            aivsai.BeginInvoke((MethodInvoker)delegate () { aivsai.Visible = false; });
+            my_nickname.BeginInvoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
+            oponent_nickname.BeginInvoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
         }
         
         private void End_game_vizualy(String outcome)// chnage the form componnent for the end of the game
         {
 
-            match_turn = false;
-            this.me.BeginInvoke((MethodInvoker)delegate ()      { this.me.Visible = false;      });
-            this.oponent.BeginInvoke((MethodInvoker)delegate () { this.oponent.Visible = false; });
-            this.play.BeginInvoke((MethodInvoker)delegate ()    { this.play.Font = new Font(play.Font.FontFamily, 30); this.play.Text = "play";    this.play.Visible = true; });
+            my_turn = false;
+            this.my_nickname.BeginInvoke((MethodInvoker)delegate ()      { this.my_nickname.Visible = false;      });
+            this.oponent_nickname.BeginInvoke((MethodInvoker)delegate () { this.oponent_nickname.Visible = false; });
+            this.play_friend.BeginInvoke((MethodInvoker)delegate ()    { this.play_friend.Font = new Font(play_friend.Font.FontFamily, 30); this.play_friend.Text = "play";    this.play_friend.Visible = true; });
+            playai.BeginInvoke((MethodInvoker)delegate () { playai.Visible = true; });
+            aivsai.BeginInvoke((MethodInvoker)delegate () { aivsai.Visible = true; });
             if (outcome.StartsWith("###draw###"))
             {
                 outcome = "Draw";
@@ -136,48 +175,58 @@ namespace chessair_client
 
         private void button_Click(object sender, EventArgs e)
         {
-            if (match_turn)
+            if (my_turn) //and check if its one of my peaces
             {
                 Button button = sender as Button;
-                Boolean can_play = false; // if it is posible to place your peace in that location
-                String[] position = button.Name.Split(',');
-                
-                if (position[1] == "5" && same_images(button.BackgroundImage, my_tiny_color_image())) // at the buttom of the board
-                { can_play = true; }
-                
-                else if ((position[1] != "5") && same_images(button.BackgroundImage, my_tiny_color_image()) && (! same_images(this.button[Convert.ToInt32(position[0]), Convert.ToInt32(position[1]) + 1].BackgroundImage, my_tiny_color_image())))
-                { can_play = true; }// not at the buttom of the board
-
-                if (can_play)
+                if (button_image_is_my_color(button.Name[0], button.Name[2]))//if want to mark a peace so he could move it
                 {
-                    match_turn = false;
-                    button.BackgroundImage = color_image("me");
-                    Program.SendMessage("###move###" + button.Name);
-                    Program.client.GetStream().BeginRead(Program.data,
-                                                     0,
-                                                     System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                     ReceiveMessage,
-                                                     null);
+                    this.xymarkedpeace = button.Name;// the [2] is befor the [0], just exept it!!
+                    Program.SendMessage("###pot_move###" + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //asks the server - which legal moves exist in that position
+                }
+                else if (this.xymarkedpeace != null && button.FlatAppearance.BorderColor != button.BackColor)//if allready marked a peace and want to move it
+                {
+                    Program.SendMessage("###move###" + chartointposition(this.xymarkedpeace[2]) + chartointposition(this.xymarkedpeace[0]) + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //tell the server to make a move
+                }
+                else// clicked on a unrelated button - reset the first "if" statements
+                {
+                    this.xymarkedpeace = null;
+                    remove_all_potmoves();
                 }
             }
         }
         
-        private void play_Click(object sender, EventArgs e)
+        private void remove_all_potmoves()
         {
-            if (play.Text == "play")
+            foreach (string move in this.markedmoves)
             {
-                play = sender as Button;
-                play.Font = new Font(play.Font.FontFamily, 20);
-                play.Text = "waiting for opponent...";
-                //
-                Program.connect_server();
-                Program.SendMessage("###ready_to_play###");
-                Program.client.GetStream().BeginRead(Program.data,
-                                                 0,
-                                                 System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                 ReceiveMessage,
-                                                 null);
+                int i = chartointposition(move[0]);
+                int j = chartointposition(move[1]);
+                board[i, j].BeginInvoke((MethodInvoker)delegate ()
+                {
+                    board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
+                });
             }
+            this.markedmoves = new List<string>();
+        }
+
+        private Boolean button_image_is_my_color(char x, char y)
+        {
+            //supose to be - '0;
+            int xvalue = x - '0';
+            int yvalue = y - '0';
+            if (this.board[xvalue, yvalue].Tag == null)
+                return false;
+            if (this.iswhite)
+            {
+                return Convert.ToInt32(this.board[xvalue, yvalue].Tag)>5;
+            }
+            return Convert.ToInt32(this.board[xvalue, yvalue].Tag) <6;
+        } 
+        
+        private int chartointposition(char character) {
+            if(this.iswhite)
+                return character - '0'; //'0'
+            return Math.Abs(character - '0' - 7);
         }
 
         private void ReceiveMessage(IAsyncResult ar)
@@ -199,29 +248,58 @@ namespace chessair_client
                     string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
                     // what happen after the cliant register - what the server returns and what happen as a result
                     if (textFromServer.StartsWith("###start_game###"))
-                    {//my nickname & opponent nickname & my color & if it's my turn
+                    {//my nickname & opponent nickname & my color 
                         textFromServer = textFromServer.Remove(0, 16);
                         String[] gamedata = textFromServer.Split('&');
-                        if (gamedata[3] == "yes") { match_turn = true; }
-                        if (gamedata[2] == "green")
+                        if (gamedata[2] == "white")
                         {
-                            mycolor = 0;
+                            this.iswhite = true; my_turn = true;
                         }
-                        if (gamedata[2] == "red")
+                        else
                         {
-                            mycolor = 1;
+                            this.iswhite =false; my_turn = false;
                         }
+                            
                         Start_game_vizualy(gamedata[0], gamedata[1]);
                     }
                     else if (textFromServer.StartsWith("###move###"))
-                    {// after ###move## there is X,Y cordinations
+                    {// after ###move## there is X,Y start cordinations and X,Y end cordinations
                         textFromServer = textFromServer.Remove(0, 10);
-                        String[] movedata = textFromServer.Split(',');
-                        button[Convert.ToInt32(movedata[0]), Convert.ToInt32(movedata[1])].BeginInvoke((MethodInvoker)delegate ()
+                        remove_all_potmoves();
+                        // the [1] is before the [0], just exept it!!
+                        int[] movedata ={ chartointposition(textFromServer[1]), chartointposition(textFromServer[0]), chartointposition(textFromServer[3]), chartointposition(textFromServer[2])};
+                        Image start_image = null;
+                        Image end_image = null;
+                        board[movedata[0], movedata[1]].Invoke((MethodInvoker)delegate
                         {
-                            button[Convert.ToInt32(movedata[0]), Convert.ToInt32(movedata[1])].BackgroundImage = color_image("oponent");
+                            start_image = (Image)board[movedata[0], movedata[1]].BackgroundImage;
                         });
-                        match_turn = true;
+                        board[movedata[2], movedata[3]].Invoke((MethodInvoker)delegate
+                        {
+                            end_image = board[movedata[2], movedata[3]].BackgroundImage;
+                        });
+                        while (start_image == null)
+                        {
+                            System.Threading.Thread.Sleep(100);
+                        }
+                        end_image = (Image)start_image.Clone();
+                        start_image = null;
+                        this.my_turn =! this.my_turn;//change the turn
+                    }
+                    else if (textFromServer.StartsWith("###posmoves###"))
+                    { // a set of all of the posible XY, end cordinations of a move. -in a XY,XY,XY format
+                        textFromServer = textFromServer.Remove(0, 14);
+                        string[] movedata = textFromServer.Split(',');
+                        foreach (string move in movedata)
+                        {
+                            int i = chartointposition(move[1]);// the [1] is before the [0], just exept it!!
+                            int j = chartointposition(move[0]);
+                            board[i,j].BeginInvoke((MethodInvoker)delegate ()
+                            {
+                                board[i, j].FlatAppearance.BorderColor = Color.Red;
+                            });
+                            markedmoves.Add(i.ToString() + j.ToString());
+                        }
                     }
                     else if (textFromServer.StartsWith("###win###") || textFromServer.StartsWith("###draw###"))// the game ended
                     {
@@ -234,28 +312,10 @@ namespace chessair_client
                                              ReceiveMessage,
                                              null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
             }
-        }
-        
-        private Image color_image(String player)
-        {
-            if (player == "me")
-            {
-                return imageList1.Images[mycolor];
-            }
-            else
-            {
-                if  (mycolor == 0) { return imageList1.Images[1]; }
-                else               { return imageList1.Images[0]; }
-            }
-        }
-        private Image my_tiny_color_image()
-        {
-            if (mycolor == 0) { return imageList1.Images[3]; }
-            else              { return imageList1.Images[4]; }
         }
 
         private bool same_images(Image ibmp1, Image ibmp2)
@@ -294,6 +354,51 @@ namespace chessair_client
         private void chessair_FormClosing(object sender, FormClosingEventArgs e)
         {
             Program.disconnect_server();
+        }
+
+        private void play_Click(object sender, EventArgs e)
+        {
+            if (play_friend.Text == "play vs friend")
+            {
+                play_friend = sender as Button;
+                //play_friend.Font = new Font(play_friend.Font.FontFamily, 20);
+                play_friend.Text = "waiting for a friend..(hopefully you hava one)";
+
+                //
+                Program.SendMessage("###ready_to_play_vs_friend###");
+                Program.client.GetStream().BeginRead(Program.data,
+                                                 0,
+                                                 System.Convert.ToInt32(Program.client.ReceiveBufferSize),
+                                                 ReceiveMessage,
+                                                 null);
+            }
+        }
+
+        private void playai_Click(object sender, EventArgs e)
+        {
+            playai = sender as Button;
+            Program.SendMessage("###ready_to_play_vs_ai###");
+            Program.client.GetStream().BeginRead(Program.data,
+                                             0,
+                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
+                                             ReceiveMessage,
+                                             null);
+        }
+
+        private void aivsai_Click(object sender, EventArgs e)
+        {
+            aivsai = sender as Button;
+            Program.SendMessage("###ai_vs_ai###");
+            Program.client.GetStream().BeginRead(Program.data,
+                                             0,
+                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
+                                             ReceiveMessage,
+                                             null);
+        }
+
+        private void chess_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

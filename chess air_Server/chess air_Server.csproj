@@ -62,7 +62,7 @@
     <Compile Include="MainProgram.cs" />
     <Compile Include="ManageClients.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="_1v1.cs" />
+    <Compile Include="types of games\_1v1.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -87,6 +87,12 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\chess-c-\chess\chess simulator.csproj">
+      <Project>{90B5C179-A2D9-4439-BC00-DE96FDFE7168}</Project>
+      <Name>chess simulator</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

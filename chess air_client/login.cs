@@ -125,7 +125,6 @@ namespace connect4_client
                             label3.Text = "recived code:";
                             //
                             string[] capchas = textFromServer.Split('%');
-                            capchas = capchas;
                             for (int i = 0; i < 3; i++)
                             {
                                 Label capcha = new Label();
@@ -185,7 +184,7 @@ namespace connect4_client
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
             }
@@ -223,7 +222,7 @@ namespace connect4_client
                 else
                     return;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
             }

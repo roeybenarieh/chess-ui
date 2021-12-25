@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using chess;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
@@ -9,10 +9,11 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows;
+using System.Collections.Generic;
 
 namespace chess_air_Server
 {
-    class ManageClient
+    public class ManageClient
     {
         // Store list of all clients connecting to the server
         // the list is static so all memebers of the chat will be able to obtain list
@@ -20,13 +21,15 @@ namespace chess_air_Server
         public static Hashtable AllClients = new Hashtable();
 
         // information about the client
-        private TcpClient _client;
-        private string _clientIP;
-        private String username;
+        public TcpClient _client;
+        public string _clientIP;
+        public String username;
         private String mailcode;
         private Boolean ready_to_play = false;
         private string[] captcha = new string[3];
-        _1v1 game;
+        public Boolean my_turn = true;
+        public List<Move> potmoves = new List<Move>();
+        public _1v1 friendgame;
 
         // used for sending and reciving data
         private byte[] data;
@@ -92,7 +95,7 @@ namespace chess_air_Server
         /// Asynchrom
         /// </summary>
         /// <param name="ar">IAsyncResult Interface</param>
-        private void ReceiveMessage(IAsyncResult ar) // recieve message only from the client
+        public void ReceiveMessage(IAsyncResult ar) // recieve message only from the client
         {
             int bytesRead;
             try
@@ -104,8 +107,7 @@ namespace chess_air_Server
                 }
                 // if bytesread<1 -> the client disconnected
                 string messageReceived = System.Text.Encoding.ASCII.GetString(data, 0, bytesRead); //the recieved message in string 
-
-                if (bytesRead < 1 || messageReceived == "quit")
+                if (bytesRead < 1 || messageReceived == "###quit###")
                 {
                     // remove the client from the list of clients
                     AllClients.Remove(_clientIP);
@@ -114,6 +116,7 @@ namespace chess_air_Server
                 else // client still connected
                 {
                     Console.WriteLine(messageReceived);
+                    Console.WriteLine(this.my_turn);
                     if (messageReceived.StartsWith("###login###"))// window1- login
                     {
                         String userdatatmp = messageReceived.Remove(0, 11);
@@ -229,32 +232,42 @@ namespace chess_air_Server
                     }
                     else // window3- game
                     {
-                        if (messageReceived == "###ready_to_play###")
+                        if (messageReceived == "###ready_to_play_vs_friend###")
                         {
+                            Boolean search_player = true;
                             if (AllClients.Count > 1)
                             {
-                                Boolean search_player = true;
-                                foreach (DictionaryEntry c in AllClients)
+                                foreach (DictionaryEntry client in AllClients)
                                 {
                                     if (search_player)
                                     {
-                                        if (((ManageClient)(c.Value))._client != this._client && ((ManageClient)(c.Value)).ready_to_play)
+                                        if (((ManageClient)(client.Value))._client != this._client && ((ManageClient)(client.Value)).ready_to_play)
                                         {
-                                            ((ManageClient)(c.Value)).ready_to_play = false;//
+                                            ((ManageClient)(client.Value)).ready_to_play = false;//
                                             this.ready_to_play = false;// both players cant play right now, they are already in a game
-                                            this.game = new _1v1(((ManageClient)(c.Value)), this);
-                                            ((ManageClient)(c.Value)).game = this.game;
                                             search_player = false;
+                                            _1v1 game = new _1v1(((ManageClient)(client.Value)), this);
+                                            this.friendgame = game;
+                                            ((ManageClient)(client.Value)).friendgame = game;
                                         }
                                     }
                                 }
-                                if (search_player == true) // didnt found a opponent to play with
-                                    ready_to_play = true;
                             }
+                            if (search_player == true) // didnt found a opponent to play with
+                                ready_to_play = true;
                         }
-                        else if (messageReceived.StartsWith("###move###"))
+                        else if (messageReceived.StartsWith("###ready_to_play_vs_ai###"))
                         {
-                            game.movement_handler(messageReceived);
+                            this.ready_to_play = false;
+                        }
+                        else if (messageReceived.StartsWith("###ai_vs_ai###"))
+                        {
+                            this.ready_to_play = false;
+                        }
+                        else if(this.my_turn)//in the middle of a game..
+                        {
+                            if(this.friendgame != null) //if this game exists and it is this clients turn
+                                this.friendgame.ReceiveMessage(messageReceived);
                         }
                     }
                 }
@@ -264,7 +277,7 @@ namespace chess_air_Server
                     _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, null);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 AllClients.Remove(_clientIP);
                 Console.WriteLine(username + "has left the chat.");
@@ -278,9 +291,9 @@ namespace chess_air_Server
         {
             return DBH.get_nickname(this.username);
         }
-        public void end_game() //end game class/obj
+        public void changeturn()
         {
-            this.game = null;
+            my_turn = !my_turn;
         }
 
         public Boolean send_email(string subject, string message, string reciver_mail) //return if mail have been sent
@@ -303,7 +316,7 @@ namespace chess_air_Server
                 smtp.Send(fmessage);
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }

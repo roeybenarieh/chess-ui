@@ -85,7 +85,7 @@ namespace chessair_client
                                              ReceiveMessage,
                                              null);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
             }
