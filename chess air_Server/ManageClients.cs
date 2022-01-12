@@ -168,7 +168,7 @@ namespace chess_air_Server
                         {
                             string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
                             string[] last_date = DBH.get_last_password_change(this.username).Split('/');
-                            if (!today_date[1].Equals(last_date[1]))
+                            if (!today_date[1].Equals(last_date[1]) && false)//every start of a new month new password need to be created.
                                 SendMessage("code done - change password");
                             else
                                 SendMessage("code done");

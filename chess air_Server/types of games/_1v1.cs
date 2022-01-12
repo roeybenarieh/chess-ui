@@ -122,9 +122,9 @@ namespace chess_air_Server
                     {
                         if(move.startsquare == start_position && move.endsquare == end_position) //check the move legality
                         {
-                            Mclient1.SendMessage("###move###"+messageReceived);//send the clients that the move has been made
-                            Mclient2.SendMessage("###move###" +messageReceived);
-                            this.chessboard.manualy_makemove(new Move(start_position, end_position,move.edgecase));
+                            Mclient1.SendMessage("###move###"+messageReceived);//send the white clients that the move has been made
+                            Mclient2.SendMessage("###move###" +messageReceived);//send the black clients that the move has been made
+                             this.chessboard.manualy_makemove(new Move(start_position, end_position,move.edgecase));
                             switch_players_turn();
                             Console.WriteLine(this.chessboard.ToString());
                         }

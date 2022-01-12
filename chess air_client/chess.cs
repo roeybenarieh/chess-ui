@@ -26,7 +26,7 @@ namespace chessair_client
         private Boolean my_turn =false;
         private Boolean iswhite = true;
         private string xymarkedpeace = null; // X,Y format
-        List<string> markedmoves = new List<string>(); 
+        List<string> markedmoves = new List<string>();  //all the moves in the list must be inserted in the right format before entering.
 
         public chess(Form f)
         {
@@ -36,7 +36,7 @@ namespace chessair_client
             }
             catch (Exception)
             {
-                f.BeginInvoke((MethodInvoker)delegate () { f.Hide(); });
+                f.Invoke((MethodInvoker)delegate () { f.Hide(); });
             }
 
             InitializeComponent();
@@ -48,9 +48,9 @@ namespace chessair_client
             const int rectangesize = 80;
             const int boarders_from_window_diagonal = 30;
             const int boarders_from_window_verticale = 350;
-            this.my_nickname.BeginInvoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (rectangesize * boardsize));});
+            this.my_nickname.Invoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (rectangesize * boardsize));});
 
-            this.oponent_nickname.BeginInvoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
+            this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
             for (int i = 0; i < boardsize; i++)// טור
             {
                 for (int j = 0; j < boardsize; j++)// שורה
@@ -74,11 +74,11 @@ namespace chessair_client
                     Controls.Add(board[i, j]);
                 }
             }
-            put_peaces();
+            put_peaces_in_start_position();
         }
         
         //sets all of the peaces in a start chess game position
-        private void put_peaces()
+        private void put_peaces_in_start_position()
         {
             void changebackgroundimage(Button button, int peacenum)
             {
@@ -146,31 +146,31 @@ namespace chessair_client
 
         private void Start_game_vizualy(string mynick, string oppnick)// chnage the form componnent for the game
         {
-            put_peaces();
-            outcome_tx.BeginInvoke((MethodInvoker)delegate () { outcome_tx.Text = "";                                     });
-            play_friend.BeginInvoke((MethodInvoker)delegate ()       { play_friend.Visible = false;                                     });
-            playai.BeginInvoke((MethodInvoker)delegate () { playai.Visible = false; });
-            aivsai.BeginInvoke((MethodInvoker)delegate () { aivsai.Visible = false; });
-            my_nickname.BeginInvoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
-            oponent_nickname.BeginInvoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
+            put_peaces_in_start_position();
+            outcome_tx.Invoke((MethodInvoker)delegate () { outcome_tx.Text = "";                                     });
+            play_friend.Invoke((MethodInvoker)delegate ()       { play_friend.Visible = false;                                     });
+            playai.Invoke((MethodInvoker)delegate () { playai.Visible = false; });
+            aivsai.Invoke((MethodInvoker)delegate () { aivsai.Visible = false; });
+            my_nickname.Invoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
+            oponent_nickname.Invoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
         }
         
         private void End_game_vizualy(String outcome)// chnage the form componnent for the end of the game
         {
 
             my_turn = false;
-            this.my_nickname.BeginInvoke((MethodInvoker)delegate ()      { this.my_nickname.Visible = false;      });
-            this.oponent_nickname.BeginInvoke((MethodInvoker)delegate () { this.oponent_nickname.Visible = false; });
-            this.play_friend.BeginInvoke((MethodInvoker)delegate ()    { this.play_friend.Font = new Font(play_friend.Font.FontFamily, 30); this.play_friend.Text = "play";    this.play_friend.Visible = true; });
-            playai.BeginInvoke((MethodInvoker)delegate () { playai.Visible = true; });
-            aivsai.BeginInvoke((MethodInvoker)delegate () { aivsai.Visible = true; });
+            this.my_nickname.Invoke((MethodInvoker)delegate ()      { this.my_nickname.Visible = false;      });
+            this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Visible = false; });
+            this.play_friend.Invoke((MethodInvoker)delegate ()    { this.play_friend.Font = new Font(play_friend.Font.FontFamily, 30); this.play_friend.Text = "play";    this.play_friend.Visible = true; });
+            playai.Invoke((MethodInvoker)delegate () { playai.Visible = true; });
+            aivsai.Invoke((MethodInvoker)delegate () { aivsai.Visible = true; });
             if (outcome.StartsWith("###draw###"))
             {
                 outcome = "Draw";
             }
             else // outcome Starts With "###win###"
                 outcome = outcome.Remove(0,9);
-            this.outcome_tx.BeginInvoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome; });
+            this.outcome_tx.Invoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome; });
         }
 
         private void button_Click(object sender, EventArgs e)
@@ -199,12 +199,20 @@ namespace chessair_client
         {
             foreach (string move in this.markedmoves)
             {
-                int i = chartointposition(move[0]);
-                int j = chartointposition(move[1]);
-                board[i, j].BeginInvoke((MethodInvoker)delegate ()
+                // the moves in the list are allready in the right format so there is no need to format them again...
+                int i = chartoint(move[0]);
+                int j = chartoint(move[1]);
+                //board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
+                if (board[i, j].InvokeRequired)
                 {
+                    board[i, j].Invoke((MethodInvoker)delegate ()
+                    {
+                        board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
+                    });
+
+                }
+                else
                     board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
-                });
             }
             this.markedmoves = new List<string>();
         }
@@ -212,8 +220,8 @@ namespace chessair_client
         private Boolean button_image_is_my_color(char x, char y)
         {
             //supose to be - '0;
-            int xvalue = x - '0';
-            int yvalue = y - '0';
+            int xvalue = chartoint(x);
+            int yvalue = chartoint(y);
             if (this.board[xvalue, yvalue].Tag == null)
                 return false;
             if (this.iswhite)
@@ -223,10 +231,15 @@ namespace chessair_client
             return Convert.ToInt32(this.board[xvalue, yvalue].Tag) <6;
         } 
         
-        private int chartointposition(char character) {
-            if(this.iswhite)
-                return character - '0'; //'0'
-            return Math.Abs(character - '0' - 7);
+        private int chartoint(char character)
+        {
+            return character - '0';
+        }
+        private int chartointposition(char position_character) {
+
+            if (this.iswhite) //no need to change the format since the server calculate the positions as white.
+                return chartoint(position_character);
+            return Math.Abs(position_character - '0' - 7);
         }
 
         private void ReceiveMessage(IAsyncResult ar)
@@ -268,22 +281,10 @@ namespace chessair_client
                         remove_all_potmoves();
                         // the [1] is before the [0], just exept it!!
                         int[] movedata ={ chartointposition(textFromServer[1]), chartointposition(textFromServer[0]), chartointposition(textFromServer[3]), chartointposition(textFromServer[2])};
-                        Image start_image = null;
-                        Image end_image = null;
-                        board[movedata[0], movedata[1]].Invoke((MethodInvoker)delegate
-                        {
-                            start_image = (Image)board[movedata[0], movedata[1]].BackgroundImage;
-                        });
-                        board[movedata[2], movedata[3]].Invoke((MethodInvoker)delegate
-                        {
-                            end_image = board[movedata[2], movedata[3]].BackgroundImage;
-                        });
-                        while (start_image == null)
-                        {
-                            System.Threading.Thread.Sleep(100);
-                        }
-                        end_image = (Image)start_image.Clone();
-                        start_image = null;
+                        board[movedata[2], movedata[3]].BackgroundImage = (Image)board[movedata[0], movedata[1]].BackgroundImage.Clone();
+                        board[movedata[2], movedata[3]].Tag = board[movedata[0], movedata[1]].Tag;
+                        board[movedata[0], movedata[1]].BackgroundImage = null; board[movedata[0], movedata[1]].Tag = null;
+
                         this.my_turn =! this.my_turn;//change the turn
                     }
                     else if (textFromServer.StartsWith("###posmoves###"))
@@ -294,7 +295,7 @@ namespace chessair_client
                         {
                             int i = chartointposition(move[1]);// the [1] is before the [0], just exept it!!
                             int j = chartointposition(move[0]);
-                            board[i,j].BeginInvoke((MethodInvoker)delegate ()
+                            board[i,j].Invoke((MethodInvoker)delegate ()
                             {
                                 board[i, j].FlatAppearance.BorderColor = Color.Red;
                             });
