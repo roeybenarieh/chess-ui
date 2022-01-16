@@ -21,6 +21,7 @@ namespace chessair_client
           Application.SetCompatibleTextRenderingDefault(false);
           ///
           //Application.Run(new chessair());
+          connect_server();
           Application.Run(new login());
           System.Windows.Forms.Application.Exit();
           

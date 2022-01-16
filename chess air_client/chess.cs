@@ -12,7 +12,6 @@ namespace chessair_client
 {
     public partial class chess : Form
     {
-
         public const int Pawn = 0;
         public const int Knight = 1;
         public const int Bishop = 2;
@@ -21,6 +20,9 @@ namespace chessair_client
         public const int King = 5;
         public const int dot = 12;
         private const int boardsize = 8;
+        private const int rectangesize = 80;
+        private const int boarders_from_window_diagonal = 30;
+        private const int boarders_from_window_verticale = 350;
 
         private Button[,] board = new Button[boardsize, boardsize];
         private Boolean my_turn =false;
@@ -45,9 +47,6 @@ namespace chessair_client
 
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
-            const int rectangesize = 80;
-            const int boarders_from_window_diagonal = 30;
-            const int boarders_from_window_verticale = 350;
             this.my_nickname.Invoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (rectangesize * boardsize));});
 
             this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
@@ -76,7 +75,7 @@ namespace chessair_client
             }
             put_peaces_in_start_position();
         }
-        
+
         //sets all of the peaces in a start chess game position
         private void put_peaces_in_start_position()
         {
@@ -90,7 +89,8 @@ namespace chessair_client
             {
                 for (int j = 0; j < boardsize; j++)// שורה
                 {
-                    this.board[0, 0].BackgroundImage = null;
+                    this.board[i, j].BackgroundImage = null;
+                    this.board[i, j].Tag = null;
                 }
             }
             int uptowhite = 0;
@@ -143,7 +143,6 @@ namespace chessair_client
 
         }
 
-
         private void Start_game_vizualy(string mynick, string oppnick)// chnage the form componnent for the game
         {
             put_peaces_in_start_position();
@@ -157,40 +156,38 @@ namespace chessair_client
         
         private void End_game_vizualy(String outcome)// chnage the form componnent for the end of the game
         {
-
             my_turn = false;
-            this.my_nickname.Invoke((MethodInvoker)delegate ()      { this.my_nickname.Visible = false;      });
-            this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Visible = false; });
-            this.play_friend.Invoke((MethodInvoker)delegate ()    { this.play_friend.Font = new Font(play_friend.Font.FontFamily, 30); this.play_friend.Text = "play";    this.play_friend.Visible = true; });
+            //this.my_nickname.Invoke((MethodInvoker)delegate ()      { this.my_nickname.Visible = false;      });
+            //this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Visible = false; });
+            this.play_friend.Invoke((MethodInvoker)delegate ()    { this.play_friend.Text = "play vs friend";    this.play_friend.Visible = true; });
             playai.Invoke((MethodInvoker)delegate () { playai.Visible = true; });
             aivsai.Invoke((MethodInvoker)delegate () { aivsai.Visible = true; });
-            if (outcome.StartsWith("###draw###"))
-            {
-                outcome = "Draw";
-            }
-            else // outcome Starts With "###win###"
-                outcome = outcome.Remove(0,9);
-            this.outcome_tx.Invoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome; });
+            outcome = outcome.Remove(0,13);
+            this.outcome_tx.Invoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome+"!"; });
         }
 
         private void button_Click(object sender, EventArgs e)
         {
-            if (my_turn) //and check if its one of my peaces
+            //bool g = true;
+            //startagain:
+            if (my_turn /*&& g*/) //and check if its one of my peaces
             {
                 Button button = sender as Button;
-                if (button_image_is_my_color(button.Name[0], button.Name[2]))//if want to mark a peace so he could move it
+                if (this.xymarkedpeace == null && button_image_is_my_color(button.Name[0], button.Name[2]))//if want to mark a peace so he could move it
                 {
                     this.xymarkedpeace = button.Name;// the [2] is befor the [0], just exept it!!
                     Program.SendMessage("###pot_move###" + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //asks the server - which legal moves exist in that position
                 }
-                else if (this.xymarkedpeace != null && button.FlatAppearance.BorderColor != button.BackColor)//if allready marked a peace and want to move it
+                else if (this.xymarkedpeace != null && button.FlatAppearance.BorderColor == Color.Red)//if allready marked a peace and want to move it
                 {
                     Program.SendMessage("###move###" + chartointposition(this.xymarkedpeace[2]) + chartointposition(this.xymarkedpeace[0]) + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //tell the server to make a move
                 }
                 else// clicked on a unrelated button - reset the first "if" statements
                 {
-                    this.xymarkedpeace = null;
+                    //g = false;
                     remove_all_potmoves();
+                    this.xymarkedpeace = null;
+                    //goto startagain;
                 }
             }
         }
@@ -284,7 +281,7 @@ namespace chessair_client
                         board[movedata[2], movedata[3]].BackgroundImage = (Image)board[movedata[0], movedata[1]].BackgroundImage.Clone();
                         board[movedata[2], movedata[3]].Tag = board[movedata[0], movedata[1]].Tag;
                         board[movedata[0], movedata[1]].BackgroundImage = null; board[movedata[0], movedata[1]].Tag = null;
-
+                        this.xymarkedpeace = null;
                         this.my_turn =! this.my_turn;//change the turn
                     }
                     else if (textFromServer.StartsWith("###posmoves###"))
@@ -302,7 +299,7 @@ namespace chessair_client
                             markedmoves.Add(i.ToString() + j.ToString());
                         }
                     }
-                    else if (textFromServer.StartsWith("###win###") || textFromServer.StartsWith("###draw###"))// the game ended
+                    else if (textFromServer.StartsWith("###endgame###"))// the game ended
                     {
                         End_game_vizualy(textFromServer);
                     }
@@ -363,7 +360,7 @@ namespace chessair_client
             {
                 play_friend = sender as Button;
                 //play_friend.Font = new Font(play_friend.Font.FontFamily, 20);
-                play_friend.Text = "waiting for a friend..(hopefully you hava one)";
+                play_friend.Text = "waiting for a friend..(hopefully you have one)";
 
                 //
                 Program.SendMessage("###ready_to_play_vs_friend###");

@@ -1,5 +1,6 @@
 ﻿using chess;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -7,14 +8,9 @@ using System.Threading.Tasks;
 
 namespace chess_air_Server
 {
-    public class _1v1
+    public class _1v1 : types_of_games.Game
     {
-        public ManageClient Mclient1; //TcpClient client1; string username1;
-        public ManageClient Mclient2; //TcpClient client2; string username2;
-
-        public String winner = "false";
-        private Random rn = new Random();
-        private chessboard chessboard = new chessboard();
+        private ManageClient Mclient2;
 
         public _1v1(ManageClient Mclient1, ManageClient Mclient2)
         {
@@ -24,56 +20,18 @@ namespace chess_air_Server
             // send all of the initial information so the players coud start playing
             if (this.rn.Next(1)==0)
             {
-                Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + Mclient2.get_nick() + "&" + "white");
+                Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + Mclient2.get_nick() + "&" + "white"); this.Mclient1white = true;
                 Mclient2.SendMessage("###start_game###" + Mclient2.get_nick() + "&" + Mclient1.get_nick() + "&" + "black"); Mclient2.my_turn = false;
             }
             else
             {
                 Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + Mclient2.get_nick() + "&" + "black"); Mclient1.my_turn = false;
-                Mclient2.SendMessage("###start_game###" + Mclient2.get_nick() + "&" + Mclient1.get_nick() + "&" + "white");
+                Mclient2.SendMessage("###start_game###" + Mclient2.get_nick() + "&" + Mclient1.get_nick() + "&" + "white"); this.Mclient1white = false;
             }   
             Console.WriteLine("new game: " + Mclient1.get_nick() + " VS " + Mclient2.get_nick());
         }
 
-        /*public void movement_handler(string messageReceived)
-        {
-            messageReceived = messageReceived.Remove(0, 10);
-            String[] movedata = messageReceived.Split(',');
-            //board[Convert.ToInt32(movedata[0]), Convert.ToInt32(movedata[1])] = player_to_number();
-            //if_no_one_won();// in case of a drew
-            //if_player_won(); // in case someone won
-            oponent().SendMessage("###move###" + messageReceived);
-            if (winner == "false")
-            {
-                switch_player_turn();
-            }
-            else
-            {
-                if (winner == "no_one")
-                {
-                    Mclient1.SendMessage("###draw###");
-                    Mclient2.SendMessage("###draw###");
-                }
-                else
-                {// send who is the winner
-                    if (winner == "player1")
-                    {
-                        Mclient1.SendMessage("###win###You won!");
-                        Mclient2.SendMessage("###win###" + Mclient1.get_nick() + " won");
-                    }
-                    else //winner == "player2"
-                    {
-                        Mclient1.SendMessage("###win###" + Mclient2.get_nick() + " won");
-                        Mclient2.SendMessage("###win###You won!");
-                    }
-                    Mclient1.friendgame = null;
-                    Mclient2.friendgame = null;
-                    return;//end the game, exiting this obj;
-                }
-            }
-        }*/
-
-        public ManageClient client_turn() // return the tcp of the current players turn to play
+        private ManageClient client_turn() // return the tcp of the current players turn to play
         {
             if (Mclient1.my_turn)
             {
@@ -85,7 +43,7 @@ namespace chess_air_Server
             }
         }
 
-        public ManageClient oponent() // return the class of the oponent of the current players turn to play
+        private ManageClient oponent() // return the class of the oponent of the current players turn to play
         {
             if (Mclient1.my_turn)
             {
@@ -98,13 +56,13 @@ namespace chess_air_Server
         }
         //
 
-        public void switch_players_turn()
+        private void switch_players_turn()
         {
-            Mclient1.changeturn();
+            base.switch_player_turn();
             Mclient2.changeturn();
         } //switch the indicator of the player current turn
 
-        public void ReceiveMessage(string messageReceived) // recieve message only from the client
+        public override void GameMessageHandler(string messageReceived) // recieve message only from the client
         {
             int char_to_int(char c) { return c - '0'; }
 
@@ -124,14 +82,41 @@ namespace chess_air_Server
                         {
                             Mclient1.SendMessage("###move###"+messageReceived);//send the white clients that the move has been made
                             Mclient2.SendMessage("###move###" +messageReceived);//send the black clients that the move has been made
-                             this.chessboard.manualy_makemove(new Move(start_position, end_position,move.edgecase));
-                            switch_players_turn();
-                            Console.WriteLine(this.chessboard.ToString());
+                            this.chessboard.manualy_makemove(new Move(start_position, end_position,move.edgecase));
+                            this.switch_players_turn();
+                            Console.WriteLine(this.Mclient1.get_nick()+" VS "+this.Mclient2.get_nick()+"\n"+this.chessboard.ToString());
+                            //check if the game ended:
+                            //if the new players turn cant move anymore
+                            if (this.chessboard.generator.Generatelegalmovesfrompseudolegal(this.chessboard.generator.generate_moves()).Count == 0) //the player cant move at all.
+                            {
+                                int kingpos = this.chessboard.getkingposition();
+                                this.chessboard.switchplayerturn(); //so i could find out if the opponent attack the player
+                                foreach(Move attackmove in this.chessboard.generator.generate_attacking_moves()) //check if the king in check - therfore checkmate.
+                                {
+                                    if (attackmove.endsquare == kingpos) 
+                                    {
+                                        if (this.Mclient1white == this.chessboard.whiteturn)
+                                        {
+                                            Mclient1.endgame("you won");
+                                            Mclient2.endgame("you lost");
+                                        }
+                                        else
+                                        {
+                                            Mclient1.endgame("you lost");
+                                            Mclient2.endgame("you won");
+                                        }
+                                        return;
+                                    }
+                                }
+                                this.chessboard.switchplayerturn();
+                                Mclient1.SendMessage("###endgame###draw");
+                                Mclient2.SendMessage("###endgame###draw");
+                            }
                         }
                     }
                 }
             }
-            if (messageReceived.StartsWith("###pot_move###"))
+            else if (messageReceived.StartsWith("###pot_move###"))
             { //message: ###pot_move###XY
                 messageReceived = messageReceived.Remove(0, 14);
                 int starti = char_to_int(messageReceived[0]);
@@ -144,7 +129,11 @@ namespace chess_air_Server
                     {
                         ans += chessboard.get_i_pos(move.endsquare).ToString() + chessboard.get_j_pos(move.endsquare).ToString() + ",";
                     }
-                    client.SendMessage("###posmoves###" + ans.Remove(ans.Length - 1));
+                    if (ans.EndsWith(","))
+                    {
+                        ans = ans.Remove(ans.Length - 1);
+                        client.SendMessage("###posmoves###" + ans);
+                    }
                 }
             }
         }

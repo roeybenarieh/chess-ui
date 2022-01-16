@@ -29,7 +29,7 @@ namespace chess_air_Server
         private string[] captcha = new string[3];
         public Boolean my_turn = true;
         public List<Move> potmoves = new List<Move>();
-        public _1v1 friendgame;
+        public types_of_games.Game game;
 
         // used for sending and reciving data
         private byte[] data;
@@ -246,9 +246,8 @@ namespace chess_air_Server
                                             ((ManageClient)(client.Value)).ready_to_play = false;//
                                             this.ready_to_play = false;// both players cant play right now, they are already in a game
                                             search_player = false;
-                                            _1v1 game = new _1v1(((ManageClient)(client.Value)), this);
-                                            this.friendgame = game;
-                                            ((ManageClient)(client.Value)).friendgame = game;
+                                            this.game = new _1v1(((ManageClient)(client.Value)), this);
+                                            ((ManageClient)(client.Value)).game = this.game;
                                         }
                                     }
                                 }
@@ -266,8 +265,8 @@ namespace chess_air_Server
                         }
                         else if(this.my_turn)//in the middle of a game..
                         {
-                            if(this.friendgame != null) //if this game exists and it is this clients turn
-                                this.friendgame.ReceiveMessage(messageReceived);
+                            if(this.game != null) //if this game exists and it is this clients turn
+                                this.game.GameMessageHandler(messageReceived);
                         }
                     }
                 }
@@ -282,6 +281,11 @@ namespace chess_air_Server
                 AllClients.Remove(_clientIP);
                 Console.WriteLine(username + "has left the chat.");
             }
+        }
+        public void endgame(string message)
+        {
+            this.SendMessage("###endgame###"+message);
+            this.game = null;
         }
         public TcpClient get_tcp()
         {
