@@ -87,30 +87,26 @@ namespace chess_air_Server
                             Console.WriteLine(this.Mclient1.get_nick()+" VS "+this.Mclient2.get_nick()+"\n"+this.chessboard.ToString());
                             //check if the game ended:
                             //if the new players turn cant move anymore
-                            if (this.chessboard.generator.Generatelegalmovesfrompseudolegal(this.chessboard.generator.generate_moves()).Count == 0) //the player cant move at all.
+                            if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the player cant move at all.
                             {
-                                int kingpos = this.chessboard.getkingposition();
-                                this.chessboard.switchplayerturn(); //so i could find out if the opponent attack the player
-                                foreach(Move attackmove in this.chessboard.generator.generate_attacking_moves()) //check if the king in check - therfore checkmate.
+                                if (this.chessboard.current_player_king_in_check()) //checkmate
                                 {
-                                    if (attackmove.endsquare == kingpos) 
+                                    if (this.Mclient1white == this.chessboard.whiteturn) //its Mclient1white current turn to move
                                     {
-                                        if (this.Mclient1white == this.chessboard.whiteturn)
-                                        {
-                                            Mclient1.endgame("you won");
-                                            Mclient2.endgame("you lost");
-                                        }
-                                        else
-                                        {
-                                            Mclient1.endgame("you lost");
-                                            Mclient2.endgame("you won");
-                                        }
-                                        return;
+                                        Mclient1.endgame("you lost");
+                                        Mclient2.endgame("you won");
+                                    }
+                                    else
+                                    {
+                                        Mclient1.endgame("you won");
+                                        Mclient2.endgame("you lost");
                                     }
                                 }
-                                this.chessboard.switchplayerturn();
-                                Mclient1.SendMessage("###endgame###draw");
-                                Mclient2.SendMessage("###endgame###draw");
+                                else //draw
+                                {
+                                    Mclient1.SendMessage("###endgame###draw");
+                                    Mclient2.SendMessage("###endgame###draw");
+                                }
                             }
                         }
                     }
@@ -124,12 +120,12 @@ namespace chess_air_Server
                 string ans = "";
                 if (this.chessboard.board[starti,startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
                 {
-                    client.potmoves = this.chessboard.generator.Generatelegalmovesfrompseudolegal(this.chessboard.generator.generate_moves(this.chessboard.board[starti, startj].Peace));
+                    client.potmoves = this.chessboard.generator.generate_legal_moves(this.chessboard.board[starti, startj].Peace);
                     foreach (Move move in client.potmoves)
                     {
                         ans += chessboard.get_i_pos(move.endsquare).ToString() + chessboard.get_j_pos(move.endsquare).ToString() + ",";
                     }
-                    if (ans.EndsWith(","))
+                    if (ans.EndsWith(",")) //if there are moves at all there has to be "," at the end of the string
                     {
                         ans = ans.Remove(ans.Length - 1);
                         client.SendMessage("###posmoves###" + ans);
