@@ -107,6 +107,10 @@ namespace chess_air_Server
                                     Mclient1.SendMessage("###endgame###draw");
                                     Mclient2.SendMessage("###endgame###draw");
                                 }
+                                if(Mclient1white)
+                                    this.savegame(this.Mclient1.client_id, this.Mclient2.client_id);
+                                else
+                                    this.savegame(this.Mclient2.client_id, this.Mclient1.client_id);
                             }
                         }
                     }

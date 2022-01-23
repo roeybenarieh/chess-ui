@@ -16,7 +16,6 @@ namespace chess_air_Server
 
         public static void Main(string[] args)
         {
-
             System.Net.IPAddress localAdd = System.Net.IPAddress.Parse(ipAddress);
 
             TcpListener listener = new TcpListener(localAdd, portNo);

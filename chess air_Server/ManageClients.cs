@@ -23,7 +23,7 @@ namespace chess_air_Server
         // information about the client
         public TcpClient _client;
         public string _clientIP;
-        public String username;
+        public int client_id; //used in DB
         private String mailcode;
         private Boolean ready_to_play = false;
         private string[] captcha = new string[3];
@@ -123,6 +123,7 @@ namespace chess_air_Server
                         String[] userdata = userdatatmp.Split('&');
                         if (DBH.login(userdata))
                         {
+                            this.client_id = DBH.get_id(userdata);
                             var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                             var stringChars = new char[10];
                             var random = new Random();
@@ -131,7 +132,7 @@ namespace chess_air_Server
                                 stringChars[i] = chars[random.Next(chars.Length)];
                             }
                             this.mailcode = new String(stringChars);
-                            if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(userdata[0])) || true)/////////////////////////////doesnt count email!!!!!!
+                            if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
                             {
                                 string message = "login done";
                                 for (int i = 0; i < 3; i++)
@@ -143,7 +144,6 @@ namespace chess_air_Server
                                     message += "%" + tmp[0];
                                 }
                                 SendMessage(message);
-                                username = userdata[0];
                             }
                             else
                                 SendMessage("coudnt send mail");
@@ -167,7 +167,7 @@ namespace chess_air_Server
                         if ((mailcode.Equals(data[0]) && data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2])) || true)
                         {
                             string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
-                            string[] last_date = DBH.get_last_password_change(this.username).Split('/');
+                            string[] last_date = DBH.get_last_password_change(this.client_id).Split('/');
                             if (!today_date[1].Equals(last_date[1]) && false)//every start of a new month new password need to be created.
                                 SendMessage("code done - change password");
                             else
@@ -279,7 +279,7 @@ namespace chess_air_Server
             catch (Exception)
             {
                 AllClients.Remove(_clientIP);
-                Console.WriteLine(username + "has left the chat.");
+                Console.WriteLine(this.client_id.ToString() + " has left.");
             }
         }
         public void endgame(string message)
@@ -293,7 +293,7 @@ namespace chess_air_Server
         }
         public string get_nick()
         {
-            return DBH.get_nickname(this.username);
+            return DBH.get_nickname(this.client_id);
         }
         public void changeturn()
         {
