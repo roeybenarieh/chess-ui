@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Windows;
 using System.Collections.Generic;
+using chess_air_Server.types_of_games;
 
 namespace chess_air_Server
 {
@@ -25,10 +26,9 @@ namespace chess_air_Server
         public string _clientIP;
         public int client_id; //used in DB
         private String mailcode;
-        private Boolean ready_to_play = false;
+        public Boolean ready_to_play = false;
         private string[] captcha = new string[3];
         public Boolean my_turn = true;
-        public List<Move> potmoves = new List<Move>();
         public types_of_games.Game game;
 
         // used for sending and reciving data
@@ -258,6 +258,7 @@ namespace chess_air_Server
                         else if (messageReceived.StartsWith("###ready_to_play_vs_ai###"))
                         {
                             this.ready_to_play = false;
+                            this.game = new _1vsAI(this);
                         }
                         else if (messageReceived.StartsWith("###ai_vs_ai###"))
                         {

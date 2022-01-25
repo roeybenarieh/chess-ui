@@ -43,19 +43,6 @@ namespace chess_air_Server
             }
         }
 
-        private ManageClient oponent() // return the class of the oponent of the current players turn to play
-        {
-            if (Mclient1.my_turn)
-            {
-                return Mclient2;
-            }
-            else // (Mclient2.my_turn ==true)
-            {
-                return Mclient1;
-            }
-        }
-        //
-
         private void switch_players_turn()
         {
             base.switch_player_turn();
@@ -64,77 +51,49 @@ namespace chess_air_Server
 
         public override void GameMessageHandler(string messageReceived) // recieve message only from the client
         {
-            int char_to_int(char c) { return c - '0'; }
-
             ManageClient client = client_turn();
             if (messageReceived.StartsWith("###move###")) //the client propose to make a move
             { // XYXY format. the first XY is the start position and the second XY is the end position.
-                messageReceived = messageReceived.Remove(0, 10);
-                int starti = char_to_int(messageReceived[0]);
-                int startj = char_to_int(messageReceived[1]);
-                if (this.chessboard.board[starti, startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
+                Move move = base.find_legal_move(messageReceived);
+                if (move.startsquare != -1) //found a ligal move
                 {
-                    int start_position = starti * 8 + startj;
-                    int end_position = char_to_int(messageReceived[2]) * 8 + char_to_int(messageReceived[3]);
-                    foreach(Move move in client.potmoves)
+                    Mclient1.SendMessage(messageReceived);//send the white clients that the move has been made
+                    Mclient2.SendMessage(messageReceived);//send the black clients that the move has been made
+                    this.chessboard.manualy_makemove(move);
+                    this.switch_players_turn();
+                    Console.WriteLine(this.Mclient1.get_nick() + " VS " + this.Mclient2.get_nick() + "\n" + this.chessboard.ToString());
+                    //check if the game ended:
+                    //if the new players turn cant move anymore
+                    if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the player cant move at all.
                     {
-                        if(move.startsquare == start_position && move.endsquare == end_position) //check the move legality
+                        if (this.chessboard.current_player_king_in_check()) //checkmate
                         {
-                            Mclient1.SendMessage("###move###"+messageReceived);//send the white clients that the move has been made
-                            Mclient2.SendMessage("###move###" +messageReceived);//send the black clients that the move has been made
-                            this.chessboard.manualy_makemove(new Move(start_position, end_position,move.edgecase));
-                            this.switch_players_turn();
-                            Console.WriteLine(this.Mclient1.get_nick()+" VS "+this.Mclient2.get_nick()+"\n"+this.chessboard.ToString());
-                            //check if the game ended:
-                            //if the new players turn cant move anymore
-                            if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the player cant move at all.
+                            if (this.Mclient1white == this.chessboard.whiteturn) //its Mclient1white current turn to move
                             {
-                                if (this.chessboard.current_player_king_in_check()) //checkmate
-                                {
-                                    if (this.Mclient1white == this.chessboard.whiteturn) //its Mclient1white current turn to move
-                                    {
-                                        Mclient1.endgame("you lost");
-                                        Mclient2.endgame("you won");
-                                    }
-                                    else
-                                    {
-                                        Mclient1.endgame("you won");
-                                        Mclient2.endgame("you lost");
-                                    }
-                                }
-                                else //draw
-                                {
-                                    Mclient1.SendMessage("###endgame###draw");
-                                    Mclient2.SendMessage("###endgame###draw");
-                                }
-                                if(Mclient1white)
-                                    this.savegame(this.Mclient1.client_id, this.Mclient2.client_id);
-                                else
-                                    this.savegame(this.Mclient2.client_id, this.Mclient1.client_id);
+                                Mclient1.endgame("you lost");
+                                Mclient2.endgame("you won");
+                            }
+                            else
+                            {
+                                Mclient1.endgame("you won");
+                                Mclient2.endgame("you lost");
                             }
                         }
+                        else //draw
+                        {
+                            Mclient1.endgame("draw");
+                            Mclient2.endgame("draw");
+                        }
+                        if (Mclient1white)
+                            this.savegame(this.Mclient1.client_id, this.Mclient2.client_id);
+                        else
+                            this.savegame(this.Mclient2.client_id, this.Mclient1.client_id);
                     }
                 }
             }
             else if (messageReceived.StartsWith("###pot_move###"))
             { //message: ###pot_move###XY
-                messageReceived = messageReceived.Remove(0, 14);
-                int starti = char_to_int(messageReceived[0]);
-                int startj = char_to_int(messageReceived[1]);
-                string ans = "";
-                if (this.chessboard.board[starti,startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
-                {
-                    client.potmoves = this.chessboard.generator.generate_legal_moves(this.chessboard.board[starti, startj].Peace);
-                    foreach (Move move in client.potmoves)
-                    {
-                        ans += chessboard.get_i_pos(move.endsquare).ToString() + chessboard.get_j_pos(move.endsquare).ToString() + ",";
-                    }
-                    if (ans.EndsWith(",")) //if there are moves at all there has to be "," at the end of the string
-                    {
-                        ans = ans.Remove(ans.Length - 1);
-                        client.SendMessage("###posmoves###" + ans);
-                    }
-                }
+                send_pot_moves(messageReceived, client);
             }
         }
 
