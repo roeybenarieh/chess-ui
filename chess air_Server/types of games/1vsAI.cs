@@ -1,6 +1,7 @@
 ﻿using chess;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,11 +66,13 @@ namespace chess_air_Server.types_of_games
                     }
                     else //the AI needs to make a move...
                     {
-                        Move aimove = this.chessboard.choose_move();
+                        Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
+                        Move aimove = this.chessboard.generator.choose_move(5);
                         this.chessboard.manualy_makemove(aimove);
-                        //this might be wron and it shoud be for a set1,2,3,4 to send 2,1,4,3
-                        Mclient1.SendMessage("###move###"+ chessboard.get_i_pos(move.startsquare) + chessboard.get_j_pos(move.startsquare)
-                            + chessboard.get_i_pos(move.endsquare) + chessboard.get_j_pos(move.endsquare));
+                        stopwatch.Stop(); Console.WriteLine(this.chessboard.ToString() + "\n" + this.Mclient1.get_nick() + " VS AI, found a move in {0} miliseconds", (float)stopwatch.ElapsedMilliseconds / 1000);
+                        //this might be wrong and it shoud be for a set1,2,3,4 to send 2,1,4,3
+                        Mclient1.SendMessage("###move###"+ chessboard.get_i_pos(aimove.startsquare) + chessboard.get_j_pos(aimove.startsquare)
+                            + chessboard.get_i_pos(aimove.endsquare) + chessboard.get_j_pos(aimove.endsquare));
                     }
                 }
             }
