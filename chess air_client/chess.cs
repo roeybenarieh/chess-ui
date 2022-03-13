@@ -19,6 +19,17 @@ namespace chessair_client
         public const int Queen = 4;
         public const int King = 5;
         public const int dot = 12;
+        //
+        public const int no_edgecase = 0;
+        public const int pawn_promote_to_knight = 1;
+        public const int pawn_promote_to_bishop = 2;
+        public const int pawn_promote_to_rook = 3;
+        public const int pawn_promote_to_queen = 4;
+        public const int castle = 5;
+        public const int king_moving = 7; //the king hasnt moved once since the beggining of the game
+        public const int rook_moving = 8; //the rook hasnt moved once since the beggining of the game
+        public const int enpassant = 9;
+        //
         private const int boardsize = 8;
         private const int rectangesize = 80;
         private const int boarders_from_window_diagonal = 30;
@@ -27,7 +38,8 @@ namespace chessair_client
         private Button[,] board = new Button[boardsize, boardsize];
         private Boolean my_turn =false;
         private Boolean iswhite = true;
-        private string xymarkedpeace = null; // X,Y format
+        private string xymarkedpeace = null; // X,Y format;
+        // represent a name of a button that his posential moves are displayed on the board
         List<string> markedmoves = new List<string>();  //all the moves in the list must be inserted in the right format before entering.
 
         public chess(Form f)
@@ -79,11 +91,6 @@ namespace chessair_client
         //sets all of the peaces in a start chess game position
         private void put_peaces_in_start_position()
         {
-            void changebackgroundimage(Button button, int peacenum)
-            {
-                button.BackgroundImage = imageList1.Images[peacenum];
-                button.Tag = peacenum.ToString();
-            }
             // make the board blank
             for (int i = 0; i < boardsize; i++)// טור
             {
@@ -111,34 +118,34 @@ namespace chessair_client
             }
             //up peaces
             //first row:
-            changebackgroundimage(this.board[0, 0], Rook + uptowhite);
-            changebackgroundimage(this.board[1, 0], Knight + uptowhite);
-            changebackgroundimage(this.board[2, 0], Bishop + uptowhite);
-            changebackgroundimage(this.board[queenjpos, 0], Queen + uptowhite);
-            changebackgroundimage(this.board[kingjpos, 0], King + uptowhite);
-            changebackgroundimage(this.board[5, 0], Bishop + uptowhite);
-            changebackgroundimage(this.board[6, 0], Knight + uptowhite);
-            changebackgroundimage(this.board[7, 0], Rook + uptowhite);
+            add_peace(this.board[0, 0], Rook + uptowhite);
+            add_peace(this.board[1, 0], Knight + uptowhite);
+            add_peace(this.board[2, 0], Bishop + uptowhite);
+            add_peace(this.board[queenjpos, 0], Queen + uptowhite);
+            add_peace(this.board[kingjpos, 0], King + uptowhite);
+            add_peace(this.board[5, 0], Bishop + uptowhite);
+            add_peace(this.board[6, 0], Knight + uptowhite);
+            add_peace(this.board[7, 0], Rook + uptowhite);
             //second row:
             for (int i = 0; i < boardsize; i++)
             {
-                changebackgroundimage(this.board[i,1], Pawn + uptowhite);
+                add_peace(this.board[i,1], Pawn + uptowhite);
             }
 
             //down peaces
             //first row:
-            changebackgroundimage(this.board[0, 7], Rook +   downtowhite);
-            changebackgroundimage(this.board[1, 7], Knight + downtowhite);
-            changebackgroundimage(this.board[2, 7], Bishop + downtowhite);
-            changebackgroundimage(this.board[queenjpos, 7], Queen +  downtowhite);
-            changebackgroundimage(this.board[kingjpos, 7], King +   downtowhite);
-            changebackgroundimage(this.board[5, 7], Bishop + downtowhite);
-            changebackgroundimage(this.board[6, 7], Knight + downtowhite);
-            changebackgroundimage(this.board[7, 7], Rook +   downtowhite);
+            add_peace(this.board[0, 7], Rook +   downtowhite);
+            add_peace(this.board[1, 7], Knight + downtowhite);
+            add_peace(this.board[2, 7], Bishop + downtowhite);
+            add_peace(this.board[queenjpos, 7], Queen +  downtowhite);
+            add_peace(this.board[kingjpos, 7], King +   downtowhite);
+            add_peace(this.board[5, 7], Bishop + downtowhite);
+            add_peace(this.board[6, 7], Knight + downtowhite);
+            add_peace(this.board[7, 7], Rook +   downtowhite);
             //second row:
             for (int i = 0; i < boardsize; i++)
             {
-                changebackgroundimage(this.board[i,6], Pawn + downtowhite);
+                add_peace(this.board[i,6], Pawn + downtowhite);
             }
 
         }
@@ -277,11 +284,57 @@ namespace chessair_client
                         textFromServer = textFromServer.Remove(0, 10);
                         remove_all_potmoves();
                         // the [1] is before the [0], just exept it!!
-                        int[] movedata ={ chartointposition(textFromServer[1]), chartointposition(textFromServer[0]), chartointposition(textFromServer[3]), chartointposition(textFromServer[2])};
-                        board[movedata[2], movedata[3]].BackgroundImage = (Image)board[movedata[0], movedata[1]].BackgroundImage.Clone();
-                        board[movedata[2], movedata[3]].Tag = board[movedata[0], movedata[1]].Tag;
-                        board[movedata[0], movedata[1]].BackgroundImage = null; board[movedata[0], movedata[1]].Tag = null;
-                        this.xymarkedpeace = null;
+                        int[] movedata ={ chartointposition(textFromServer[1]), 
+                            chartointposition(textFromServer[0]), 
+                            chartointposition(textFromServer[3]), 
+                            chartointposition(textFromServer[2])};
+                        move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);
+
+                        //moving peace to the new position
+                        //board[movedata[2], movedata[3]].BackgroundImage = (Image)board[movedata[0], movedata[1]].BackgroundImage.Clone();
+                        //board[movedata[2], movedata[3]].Tag = board[movedata[0], movedata[1]].Tag;
+                        
+                        //deleting records of the peace in the old position
+                        //board[movedata[0], movedata[1]].BackgroundImage = null; board[movedata[0], movedata[1]].Tag = null;
+                        string[] edgecase = textFromServer.Split('#');
+                        if (!edgecase[1].Equals(no_edgecase.ToString()))
+                        {
+                            for(int i=0;i<movedata.Length;i++)
+                                Console.WriteLine(movedata[i]);
+                            if (edgecase[1].Equals(castle.ToString()))
+                            {
+                                if (movedata[2] == 6) //right castle
+                                    move_peace(7, movedata[1], 5, movedata[1]);
+                                else if (movedata[2] == 1)
+                                    move_peace(0, movedata[1], 3, movedata[1]);
+
+                            }
+                            else if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
+                            {
+                                add_peace(movedata[2], movedata[3], Queen);
+                            }
+                            else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
+                            {
+                                add_peace(movedata[2], movedata[3], Rook);
+                            }
+                            else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
+                            {
+                                add_peace(movedata[2], movedata[3], Bishop);
+                            }
+                            else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
+                            {
+                                add_peace(movedata[2], movedata[3], Knight);
+                            }
+                            else if (edgecase[1].Equals(enpassant.ToString()))
+                            {
+                                if(this.iswhite)
+                                    delete_peace(movedata[2], movedata[3]+ 1);
+                                else
+                                    delete_peace(movedata[2], movedata[3] - 1);
+                            }
+                        }
+                        
+                        this.xymarkedpeace = null;//unmark pot moves of a peace
                         this.my_turn =! this.my_turn;//change the turn
                     }
                     else if (textFromServer.StartsWith("###posmoves###"))
@@ -313,7 +366,33 @@ namespace chessair_client
             catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
+                Console.WriteLine("uston we have a problemo");
             }
+        }
+
+        private void move_peace(int in_i, int in_j, int fn_i, int fn_j)
+        {
+            //moving peace to the new position
+            add_peace(board[fn_i, fn_j], Int32.Parse(board[in_i, in_j].Tag.ToString()));
+            //board[fn_i, fn_j].BackgroundImage = (Image)board[in_i, in_j].BackgroundImage.Clone();
+            //board[fn_i, fn_j].Tag = board[in_i, in_j].Tag;
+
+            //deleting records of the peace in the old position
+            delete_peace(in_i, in_j);
+        }
+        private void delete_peace(int i, int j)
+        {
+            board[i,j].BackgroundImage = null; board[i,j].Tag = null;
+        }
+        private void add_peace(Button button, int peacenum)
+        {
+            button.BackgroundImage = imageList1.Images[peacenum];
+            button.Tag = peacenum.ToString();
+        }
+        private void add_peace(int i, int j, int peacenum)
+        {
+            this.board[i,j].BackgroundImage = imageList1.Images[peacenum];
+            this.board[i, j].Tag = peacenum.ToString();
         }
 
         private bool same_images(Image ibmp1, Image ibmp2)

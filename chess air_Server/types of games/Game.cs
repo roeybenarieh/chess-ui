@@ -56,6 +56,11 @@ namespace chess_air_Server.types_of_games
                 }
             }
         }
+        //send a formated move message to a client
+        internal void send_move(ManageClient client, string move_messageReceived, int edgecase)
+        {
+            client.SendMessage(move_messageReceived+"#"+edgecase);//send the white clients that the move has been made
+        }
 
         internal Move find_legal_move(string messageReceived)
         {

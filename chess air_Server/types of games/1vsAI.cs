@@ -37,23 +37,16 @@ namespace chess_air_Server.types_of_games
                 Move move = base.find_legal_move(messageReceived);
                 if (move.startsquare != -1) //found a ligal move
                 {
-                    Mclient1.SendMessage(messageReceived);//send the white clients that the move has been made
+                    base.send_move(Mclient1, messageReceived, move.edgecase);//send the white clients that the move has been made
                     this.chessboard.manualy_makemove(move);
                     Console.WriteLine(this.Mclient1.get_nick() + " VS AI\n" + this.chessboard.ToString());
                     //check if the game ended:
                     //if the new players turn cant move anymore
-                    if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the player cant move at all.
+                    if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the AI cant move at all.
                     {
                         if (this.chessboard.current_player_king_in_check()) //checkmate
                         {
-                            if (this.Mclient1white == this.chessboard.whiteturn) //its Mclient1white current turn to move
-                            {
-                                Mclient1.endgame("you lost");
-                            }
-                            else
-                            {
-                                Mclient1.endgame("you won");
-                            }
+                            Mclient1.endgame("you won");
                         }
                         else //draw
                         {
@@ -67,12 +60,35 @@ namespace chess_air_Server.types_of_games
                     else //the AI needs to make a move...
                     {
                         Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
-                        Move aimove = this.chessboard.generator.choose_move(5);
+                        Move aimove = this.chessboard.generator.choose_move(depth:4,iswhite:false);
+                        stopwatch.Stop();
+                        Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} miliseconds, static evaluation: {2}",
+                            aimove.print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
+
                         this.chessboard.manualy_makemove(aimove);
-                        stopwatch.Stop(); Console.WriteLine(this.chessboard.ToString() + "\n" + this.Mclient1.get_nick() + " VS AI, found a move in {0} miliseconds", (float)stopwatch.ElapsedMilliseconds / 1000);
-                        //this might be wrong and it shoud be for a set1,2,3,4 to send 2,1,4,3
-                        Mclient1.SendMessage("###move###"+ chessboard.get_i_pos(aimove.startsquare) + chessboard.get_j_pos(aimove.startsquare)
-                            + chessboard.get_i_pos(aimove.endsquare) + chessboard.get_j_pos(aimove.endsquare));
+                        Console.WriteLine(this.chessboard.ToString());
+
+                        base.send_move(Mclient1,
+                            "###move###" + chessboard.get_i_pos(aimove.startsquare) + chessboard.get_j_pos(aimove.startsquare)
+                            + chessboard.get_i_pos(aimove.endsquare) + chessboard.get_j_pos(aimove.endsquare)
+                            , aimove.edgecase);//send the white clients that the move has been made
+
+                        if(this.chessboard.generator.generate_all_legal_moves().Count ==0)//the AI won
+                        {
+                            if (this.chessboard.current_player_king_in_check()) //checkmate
+                            {
+                                Mclient1.endgame("you lost");
+                            }
+                            else //draw
+                            {
+                                Mclient1.SendMessage("###endgame###draw");
+                            }
+                            if (Mclient1white)
+                                this.savegame(white_player_id: this.Mclient1.client_id);
+                            else
+                                this.savegame(black_player_id: this.Mclient1.client_id);
+                        }
+
                     }
                 }
             }
