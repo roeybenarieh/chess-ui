@@ -1,4 +1,5 @@
-﻿using System;
+﻿using connect4_client;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -30,15 +31,16 @@ namespace chessair_client
         public const int rook_moving = 8; //the rook hasnt moved once since the beggining of the game
         public const int enpassant = 9;
         //
-        private const int boardsize = 8;
-        private const int rectangesize = 80;
-        private const int boarders_from_window_diagonal = 30;
-        private const int boarders_from_window_verticale = 350;
+        public const int boardsize = 8;
+        public const int rectangesize = 80;
+        public const int boarders_from_window_diagonal = 30;
+        public const int boarders_from_window_verticale = 350;
 
         private Button[,] board = new Button[boardsize, boardsize];
-        private Boolean my_turn =false;
-        private Boolean iswhite = true;
-        private string xymarkedpeace = null; // X,Y format;
+        internal promotion_hundler ph;
+        internal Boolean my_turn =false;
+        internal Boolean iswhite = true;
+        internal string xymarkedpeace = null; // X,Y format;
         // represent a name of a button that his posential moves are displayed on the board
         List<string> markedmoves = new List<string>();  //all the moves in the list must be inserted in the right format before entering.
 
@@ -86,6 +88,7 @@ namespace chessair_client
                 }
             }
             put_peaces_in_start_position();
+            this.ph = new promotion_hundler(0, this, false);
         }
 
         //sets all of the peaces in a start chess game position
@@ -175,8 +178,7 @@ namespace chessair_client
 
         private void button_Click(object sender, EventArgs e)
         {
-            //bool g = true;
-            //startagain:
+            this.ph.stop_show();
             if (my_turn /*&& g*/) //and check if its one of my peaces
             {
                 Button button = sender as Button;
@@ -187,16 +189,37 @@ namespace chessair_client
                 }
                 else if (this.xymarkedpeace != null && button.FlatAppearance.BorderColor == Color.Red)//if allready marked a peace and want to move it
                 {
-                    Program.SendMessage("###move###" + chartointposition(this.xymarkedpeace[2]) + chartointposition(this.xymarkedpeace[0]) + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //tell the server to make a move
+                    string[] pos = xymarkedpeace.Split(',');
+                    int correction = 0;
+                    if (iswhite)
+                        correction = 6;
+                    if (Int32.Parse(this.board[Int32.Parse(pos[0]), Int32.Parse(pos[1])].Tag.ToString()) == Pawn +correction &&
+                        button.Name[2].Equals('0'))
+                        this.ph = new promotion_hundler(Int32.Parse(button.Name.Split(',')[0]), this,true);
+                    else
+                        send_move_to_server(chartointposition(this.xymarkedpeace[2]),
+                            chartointposition(this.xymarkedpeace[0]),
+                            chartointposition(button.Name[2]),
+                            chartointposition(button.Name[0])); //tell the server to make a move
                 }
                 else// clicked on a unrelated button - reset the first "if" statements
                 {
-                    //g = false;
                     remove_all_potmoves();
                     this.xymarkedpeace = null;
-                    //goto startagain;
                 }
             }
+        }
+        public void send_move_to_server(int start_j, int start_i, int end_j, int end_i, string promotion =null)
+        {
+            if(promotion == null)
+                Program.SendMessage("###move###" + 
+                    start_j + start_i + 
+                    end_j + end_i); //tell the server to make a move
+            else
+                Program.SendMessage("###move###" +
+                    start_j + start_i +
+                    end_j + end_i +
+                    promotion); //tell the server to make a move
         }
         
         private void remove_all_potmoves()
@@ -235,11 +258,11 @@ namespace chessair_client
             return Convert.ToInt32(this.board[xvalue, yvalue].Tag) <6;
         } 
         
-        private int chartoint(char character)
+        internal int chartoint(char character)
         {
             return character - '0';
         }
-        private int chartointposition(char position_character) {
+        internal int chartointposition(char position_character) {
 
             if (this.iswhite) //no need to change the format since the server calculate the positions as white.
                 return chartoint(position_character);
@@ -288,49 +311,49 @@ namespace chessair_client
                             chartointposition(textFromServer[0]), 
                             chartointposition(textFromServer[3]), 
                             chartointposition(textFromServer[2])};
-                        move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);
+                        move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);//moving peace to the new position
 
-                        //moving peace to the new position
-                        //board[movedata[2], movedata[3]].BackgroundImage = (Image)board[movedata[0], movedata[1]].BackgroundImage.Clone();
-                        //board[movedata[2], movedata[3]].Tag = board[movedata[0], movedata[1]].Tag;
-                        
-                        //deleting records of the peace in the old position
-                        //board[movedata[0], movedata[1]].BackgroundImage = null; board[movedata[0], movedata[1]].Tag = null;
                         string[] edgecase = textFromServer.Split('#');
-                        if (!edgecase[1].Equals(no_edgecase.ToString()))
+                        if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
                         {
                             for(int i=0;i<movedata.Length;i++)
                                 Console.WriteLine(movedata[i]);
-                            if (edgecase[1].Equals(castle.ToString()))
+                            if (edgecase[1].Equals(castle.ToString())) //castling
                             {
                                 if (movedata[2] == 6) //right castle
                                     move_peace(7, movedata[1], 5, movedata[1]);
-                                else if (movedata[2] == 1)
+                                else if (movedata[2] == 2)
                                     move_peace(0, movedata[1], 3, movedata[1]);
 
                             }
-                            else if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
+                            else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
                             {
-                                add_peace(movedata[2], movedata[3], Queen);
-                            }
-                            else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
-                            {
-                                add_peace(movedata[2], movedata[3], Rook);
-                            }
-                            else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
-                            {
-                                add_peace(movedata[2], movedata[3], Bishop);
-                            }
-                            else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
-                            {
-                                add_peace(movedata[2], movedata[3], Knight);
-                            }
-                            else if (edgecase[1].Equals(enpassant.ToString()))
-                            {
-                                if(this.iswhite)
-                                    delete_peace(movedata[2], movedata[3]+ 1);
+                                if (this.iswhite)
+                                    delete_peace(movedata[2], movedata[3] + 1);
                                 else
                                     delete_peace(movedata[2], movedata[3] - 1);
+                            }
+                            else //promotion
+                            {
+                                int color = 0;
+                                if (!(this.iswhite ^ this.my_turn))//if only one of the bool is true, otherwise false
+                                    color = 6;
+                                if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
+                                {
+                                    add_peace(movedata[2], movedata[3], Queen + color);
+                                }
+                                else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
+                                {
+                                    add_peace(movedata[2], movedata[3], Rook + color);
+                                }
+                                else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
+                                {
+                                    add_peace(movedata[2], movedata[3], Bishop + color);
+                                }
+                                else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
+                                {
+                                    add_peace(movedata[2], movedata[3], Knight + color);
+                                }
                             }
                         }
                         
@@ -374,17 +397,17 @@ namespace chessair_client
         {
             //moving peace to the new position
             add_peace(board[fn_i, fn_j], Int32.Parse(board[in_i, in_j].Tag.ToString()));
-            //board[fn_i, fn_j].BackgroundImage = (Image)board[in_i, in_j].BackgroundImage.Clone();
-            //board[fn_i, fn_j].Tag = board[in_i, in_j].Tag;
 
             //deleting records of the peace in the old position
             delete_peace(in_i, in_j);
         }
+        //remove a peace from a button
         private void delete_peace(int i, int j)
         {
             board[i,j].BackgroundImage = null; board[i,j].Tag = null;
         }
-        private void add_peace(Button button, int peacenum)
+        //both of these fun add a peace to a button
+        internal void add_peace(Button button, int peacenum)
         {
             button.BackgroundImage = imageList1.Images[peacenum];
             button.Tag = peacenum.ToString();

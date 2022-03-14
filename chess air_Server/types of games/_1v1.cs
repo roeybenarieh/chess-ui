@@ -85,9 +85,9 @@ namespace chess_air_Server
                             Mclient2.endgame("draw");
                         }
                         if (Mclient1white)
-                            this.savegame(this.Mclient1.client_id, this.Mclient2.client_id);
+                            base.savegame(this.Mclient1.client_id, this.Mclient2.client_id);
                         else
-                            this.savegame(this.Mclient2.client_id, this.Mclient1.client_id);
+                            base.savegame(this.Mclient2.client_id, this.Mclient1.client_id);
                     }
                 }
             }

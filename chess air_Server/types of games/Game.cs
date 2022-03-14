@@ -30,9 +30,9 @@ namespace chess_air_Server.types_of_games
         {
             string w_player_id = white_player_id.ToString(); string b_player_id = black_player_id.ToString();
             if (black_player_id == -1)
-                b_player_id = null;
+                b_player_id = "null";
             if(white_player_id == -1)
-                w_player_id = null;
+                w_player_id = "null";
             DBH.insert_game(w_player_id, b_player_id, chessboard.get_all_played_moves(false));
         }
         
@@ -71,10 +71,18 @@ namespace chess_air_Server.types_of_games
             {
                 int start_position = starti * 8 + startj;
                 int end_position = char_to_int(messageReceived[2]) * 8 + char_to_int(messageReceived[3]);
+                bool promotion=false;
+                if (messageReceived.Length == 5)
+                {//there is a promotion edgecase in the move
+                    promotion = true;
+                }
                 foreach (Move move in this.potmoves)
                 {
+                    Console.WriteLine(move.to_mininal_string());
                     if (move.startsquare == start_position && move.endsquare == end_position) //check the move legality
                     {
+                        if (promotion && move.edgecase != char_to_int(messageReceived[4]))
+                            continue;
                         return move;
                     }
                 }
