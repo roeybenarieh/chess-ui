@@ -56,7 +56,7 @@ namespace connect4_client
             chess.send_move_to_server(chess.chartointposition(chess.xymarkedpeace[2]) ,
                 chess.chartointposition(chess.xymarkedpeace[0]) ,
                 row,
-                7 - this.i_cor,
+                Math.Abs(row - this.i_cor),
                 button.Name);
             stop_show();
         }

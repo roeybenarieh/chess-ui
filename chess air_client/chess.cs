@@ -328,10 +328,7 @@ namespace chessair_client
                             }
                             else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
                             {
-                                if (this.iswhite)
-                                    delete_peace(movedata[2], movedata[3] + 1);
-                                else
-                                    delete_peace(movedata[2], movedata[3] - 1);
+                                delete_peace(movedata[2], movedata[3] - 1);//delete the captured pawn
                             }
                             else //promotion
                             {
