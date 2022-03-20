@@ -32,6 +32,9 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
 # Files built by Visual Studio
 *_i.c
 *_p.c
@@ -61,6 +64,9 @@ bld/
 *.pidb
 *.svclog
 *.scc
+
+# Chutzpah Test files
+_Chutzpah*
 
 
 *.msix
