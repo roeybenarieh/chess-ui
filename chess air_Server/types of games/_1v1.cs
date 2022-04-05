@@ -68,7 +68,7 @@ namespace chess_air_Server
                     {
                         if (this.chessboard.current_player_king_in_check()) //checkmate
                         {
-                            if (this.Mclient1white == this.chessboard.whiteturn) //its Mclient1white current turn to move
+                            if (this.Mclient1white == this.chessboard.white_turn) //its Mclient1white current turn to move
                             {
                                 Mclient1.endgame("you lost");
                                 Mclient2.endgame("you won");

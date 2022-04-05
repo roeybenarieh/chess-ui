@@ -22,7 +22,7 @@ namespace chessair_client
           ///
           //Application.Run(new chessair());
           connect_server();
-          Application.Run(new login());
+          new login().ShowDialog();
           System.Windows.Forms.Application.Exit();
           
         }

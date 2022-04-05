@@ -227,5 +227,10 @@ namespace connect4_client
                 // ignor the error... fired when the user loggs off
             }
         }
+
+        private void login_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
