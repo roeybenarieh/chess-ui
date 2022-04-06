@@ -42,9 +42,9 @@ namespace chess_air_Server.types_of_games
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
             string ans = "";
-            if (this.chessboard.board[starti, startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
+            if (this.chessboard.board[starti * chessboard.board_size + startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
             {
-                this.potmoves = this.chessboard.generator.generate_legal_moves(this.chessboard.board[starti, startj].Peace);
+                this.potmoves = this.chessboard.generator.generate_legal_moves(this.chessboard.board[starti * chessboard.board_size + startj].Peace);
                 foreach (Move move in this.potmoves)
                 {
                     ans += chessboard.get_i_pos(move.endsquare).ToString() + chessboard.get_j_pos(move.endsquare).ToString() + ",";
@@ -67,7 +67,7 @@ namespace chess_air_Server.types_of_games
             messageReceived = messageReceived.Remove(0, 10);
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
-            if (this.chessboard.board[starti, startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
+            if (this.chessboard.board[starti * chessboard.board_size + startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
             {
                 int start_position = starti * 8 + startj;
                 int end_position = char_to_int(messageReceived[2]) * 8 + char_to_int(messageReceived[3]);

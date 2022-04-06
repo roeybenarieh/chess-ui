@@ -12,7 +12,7 @@ namespace chess_air_Server
     internal class MainProgram
     {
         private const int portNo = 500;
-        private const string ipAddress = "127.0.0.1";
+        private const string ipAddress = "127.0.0.1";//127.0.0.1 for debugging purposes
 
 
         public static void Main(string[] args)
