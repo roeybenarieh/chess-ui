@@ -13,36 +13,20 @@ namespace chessair_client
 {
     public partial class chess : Form
     {
-        public const int Pawn = 0;
-        public const int Knight = 1;
-        public const int Bishop = 2;
-        public const int Rook = 3;
-        public const int Queen = 4;
-        public const int King = 5;
-        public const int dot = 12;
-        //
-        public const int no_edgecase = 0;
-        public const int pawn_promote_to_knight = 1;
-        public const int pawn_promote_to_bishop = 2;
-        public const int pawn_promote_to_rook = 3;
-        public const int pawn_promote_to_queen = 4;
-        public const int castle = 5;
-        public const int king_moving = 7; //the king hasnt moved once since the beggining of the game
-        public const int rook_moving = 8; //the rook hasnt moved once since the beggining of the game
-        public const int enpassant = 9;
-        //
         public const int boardsize = 8;
-        public const int rectangesize = 80;
+        public const int squeresize = 80;
         public const int boarders_from_window_diagonal = 30;
         public const int boarders_from_window_verticale = 350;
 
-        private Button[,] board = new Button[boardsize, boardsize];
+        private Button[,] board;
+        internal FlowLayoutPanel moves_history;
         internal promotion_hundler ph;
         internal Boolean my_turn =false;
         internal Boolean iswhite = true;
         internal string xymarkedpeace = null; // X,Y format;
-        // represent a name of a button that his posential moves are displayed on the board
-        List<string> markedmoves = new List<string>();  //all the moves in the list must be inserted in the right format before entering.
+        //all the moves in the list must be inserted in the right format before entering.
+        // represent a name of a button that his potential moves are displayed on the board
+        List<string> markedmoves = new List<string>();
 
         public chess(Form f)
         {
@@ -61,9 +45,10 @@ namespace chessair_client
 
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
-            this.my_nickname.Invoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (rectangesize * boardsize));});
+            this.my_nickname.Invoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (squeresize * boardsize));});
 
             this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
+            board = new Button[boardsize, boardsize];
             for (int i = 0; i < boardsize; i++)// טור
             {
                 for (int j = 0; j < boardsize; j++)// שורה
@@ -71,8 +56,8 @@ namespace chessair_client
                     board[i,j] = new Button();
                     board[i, j].Name = i + "," + j;
                     board[i, j].Text = i + "," + j;
-                    board[i, j].Location = new Point(rectangesize * i + boarders_from_window_verticale , rectangesize * j + boarders_from_window_diagonal);
-                    board[i, j].Size = new Size(rectangesize, rectangesize);
+                    board[i, j].Location = new Point(squeresize * i + boarders_from_window_verticale , squeresize * j + boarders_from_window_diagonal);
+                    board[i, j].Size = new Size(squeresize, squeresize);
                     board[i, j].FlatStyle = FlatStyle.Flat;
                     board[i, j].FlatAppearance.BorderSize = 5;
                     if ((i + j) % 2 == 0)
@@ -88,10 +73,27 @@ namespace chessair_client
                 }
             }
             put_peaces_in_start_position();
+            this.moves_history = new FlowLayoutPanel();
+            this.moves_history.Location = new Point(boarders_from_window_verticale+(squeresize * boardsize) + 15, boarders_from_window_diagonal);
+            this.moves_history.Size = new Size(this.Size.Width - this.moves_history.Location.X - 30, squeresize * boardsize);
+            this.moves_history.AutoScroll = true;
+            this.moves_history.BackColor = Color.White;
+            this.moves_history.BorderStyle = BorderStyle.FixedSingle;
+            this.moves_history.FlowDirection = FlowDirection.LeftToRight;
+            this.moves_history.WrapContents = true;
+            this.moves_history.AutoSize = false;
+            this.moves_history.AutoScroll = true;
+            Controls.Add(this.moves_history);
+            for (int i = 0; i < 20; i++)
+            {
+                this.moves_history.Controls.Add(new Label() { Text = "Moves History"+i.ToString() });
+            }
+            Controls.Add(this.moves_history);
+            
             this.ph = new promotion_hundler(0, this, false);
         }
 
-        //sets all of the peaces in a start chess game position
+        //sets all of the peaces in a start chess game position accourding to the player's color
         private void put_peaces_in_start_position()
         {
             // make the board blank
@@ -209,6 +211,7 @@ namespace chessair_client
                 }
             }
         }
+        
         public void send_move_to_server(int start_j, int start_i, int end_j, int end_i, string promotion =null)
         {
             if(promotion == null)
@@ -497,5 +500,22 @@ namespace chessair_client
         {
 
         }
+
+        public const int Pawn = 0;
+        public const int Knight = 1;
+        public const int Bishop = 2;
+        public const int Rook = 3;
+        public const int Queen = 4;
+        public const int King = 5;
+        public const int dot = 12;
+        //
+        public const int no_edgecase = 0;
+        public const int pawn_promote_to_knight = 1;
+        public const int pawn_promote_to_bishop = 2;
+        public const int pawn_promote_to_rook = 3;
+        public const int pawn_promote_to_queen = 4;
+        public const int castle = 5;
+        public const int enpassant = 9;
+        //
     }
 }

@@ -28,8 +28,8 @@ namespace connect4_client
             {
                 peace[i] = new Button();
                 peace[i].Name = promotion_peaces[i].ToString();
-                peace[i].Location = new Point(chess.boarders_from_window_verticale + (chess.rectangesize * i_cor), chess.boarders_from_window_diagonal + (chess.rectangesize * i));
-                peace[i].Size = new Size(chess.rectangesize, chess.rectangesize);
+                peace[i].Location = new Point(chess.boarders_from_window_verticale + (chess.squeresize * i_cor), chess.boarders_from_window_diagonal + (chess.squeresize * i));
+                peace[i].Size = new Size(chess.squeresize, chess.squeresize);
                 peace[i].FlatStyle = FlatStyle.Flat;
                 peace[i].FlatAppearance.BorderSize = 5;
                 peace[i].BackColor = Color.Honeydew;
