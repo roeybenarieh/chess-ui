@@ -53,8 +53,8 @@ namespace connect4_client
             Button button = sender as Button;
             int row = chess.iswhite ? 0 : 7;
 
-            chess.send_move_to_server(chess.chartointposition(chess.xymarkedpeace[2]) ,
-                chess.chartointposition(chess.xymarkedpeace[0]) ,
+            chess.send_move_to_server(chess.chartointposition(chess.xymarkedpeace[0]) ,
+                chess.chartointposition(chess.xymarkedpeace[2]) ,
                 row,
                 Math.Abs(row - this.i_cor),
                 button.Name);
