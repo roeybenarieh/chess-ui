@@ -159,7 +159,6 @@ namespace connect4_client
                     else if (textFromServer == "code done")
                     {
                         change_outputtext_txt("login completed, starting game...");
-                        System.Threading.Thread.Sleep(1500);
                         chess chessair = new chess(this);
                         chessair.ShowDialog();
                     }

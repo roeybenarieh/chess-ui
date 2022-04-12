@@ -56,7 +56,7 @@ namespace chessair_client
                     board[i,j] = new Button();
                     board[i, j].Name = i + "," + j;
                     board[i, j].Text = i + "," + j;
-                    board[i, j].Location = new Point(squeresize * i + boarders_from_window_verticale , squeresize * j + boarders_from_window_diagonal);
+                    board[i, j].Location = new Point(squeresize * j + boarders_from_window_verticale , squeresize * i + boarders_from_window_diagonal);
                     board[i, j].Size = new Size(squeresize, squeresize);
                     board[i, j].FlatStyle = FlatStyle.Flat;
                     board[i, j].FlatAppearance.BorderSize = 5;
@@ -78,16 +78,12 @@ namespace chessair_client
             this.moves_history.Size = new Size(this.Size.Width - this.moves_history.Location.X - 30, squeresize * boardsize);
             this.moves_history.AutoScroll = true;
             this.moves_history.BackColor = Color.White;
-            this.moves_history.BorderStyle = BorderStyle.FixedSingle;
             this.moves_history.FlowDirection = FlowDirection.LeftToRight;
             this.moves_history.WrapContents = true;
             this.moves_history.AutoSize = false;
             this.moves_history.AutoScroll = true;
-            Controls.Add(this.moves_history);
-            for (int i = 0; i < 20; i++)
-            {
-                this.moves_history.Controls.Add(new Label() { Text = "Moves History"+i.ToString() });
-            }
+            this.moves_history.Margin = new Padding(0, 0, 0, 0);
+            this.moves_history.AutoScrollMargin = new Size(0, 0);
             Controls.Add(this.moves_history);
             
             this.ph = new promotion_hundler(0, this, false);
@@ -123,34 +119,34 @@ namespace chessair_client
             }
             //up peaces
             //first row:
-            add_peace(this.board[0, 0], Rook + uptowhite);
-            add_peace(this.board[1, 0], Knight + uptowhite);
-            add_peace(this.board[2, 0], Bishop + uptowhite);
-            add_peace(this.board[queenjpos, 0], Queen + uptowhite);
-            add_peace(this.board[kingjpos, 0], King + uptowhite);
-            add_peace(this.board[5, 0], Bishop + uptowhite);
-            add_peace(this.board[6, 0], Knight + uptowhite);
-            add_peace(this.board[7, 0], Rook + uptowhite);
+            add_peace(0, 0, Rook + uptowhite);
+            add_peace(0, 1, Knight + uptowhite);
+            add_peace(0, 2, Bishop + uptowhite);
+            add_peace(0, queenjpos, Queen + uptowhite);
+            add_peace(0, kingjpos , King + uptowhite);
+            add_peace(0, 5, Bishop + uptowhite);
+            add_peace(0, 6, Knight + uptowhite);
+            add_peace(0, 7, Rook + uptowhite);
             //second row:
             for (int i = 0; i < boardsize; i++)
             {
-                add_peace(this.board[i,1], Pawn + uptowhite);
+                add_peace(1, i, Pawn + uptowhite);
             }
 
             //down peaces
             //first row:
-            add_peace(this.board[0, 7], Rook +   downtowhite);
-            add_peace(this.board[1, 7], Knight + downtowhite);
-            add_peace(this.board[2, 7], Bishop + downtowhite);
-            add_peace(this.board[queenjpos, 7], Queen +  downtowhite);
-            add_peace(this.board[kingjpos, 7], King +   downtowhite);
-            add_peace(this.board[5, 7], Bishop + downtowhite);
-            add_peace(this.board[6, 7], Knight + downtowhite);
-            add_peace(this.board[7, 7], Rook +   downtowhite);
+            add_peace(7, 0, Rook +   downtowhite);
+            add_peace(7, 1, Knight + downtowhite);
+            add_peace(7, 2, Bishop + downtowhite);
+            add_peace(7, queenjpos, Queen +  downtowhite);
+            add_peace(7, kingjpos , King +   downtowhite);
+            add_peace(7, 5, Bishop + downtowhite);
+            add_peace(7, 6, Knight + downtowhite);
+            add_peace(7, 7, Rook +   downtowhite);
             //second row:
             for (int i = 0; i < boardsize; i++)
             {
-                add_peace(this.board[i,6], Pawn + downtowhite);
+                add_peace(6, i, Pawn + downtowhite);
             }
 
         }
@@ -187,22 +183,20 @@ namespace chessair_client
                 if (this.xymarkedpeace == null && button_image_is_my_color(button.Name[0], button.Name[2]))//if want to mark a peace so he could move it
                 {
                     this.xymarkedpeace = button.Name;// the [2] is befor the [0], just exept it!!
-                    Program.SendMessage("###pot_move###" + chartointposition(button.Name[2]) + chartointposition(button.Name[0])); //asks the server - which legal moves exist in that position
+                    Program.SendMessage("###pot_move###" + chartointposition(button.Name[0]) + chartointposition(button.Name[2])); //asks the server - which legal moves exist in that position
                 }
                 else if (this.xymarkedpeace != null && button.FlatAppearance.BorderColor == Color.Red)//if allready marked a peace and want to move it
                 {
                     string[] pos = xymarkedpeace.Split(',');
-                    int correction = 0;
-                    if (iswhite)
-                        correction = 6;
+                    int correction = iswhite? 6 : 0;
                     if (Int32.Parse(this.board[Int32.Parse(pos[0]), Int32.Parse(pos[1])].Tag.ToString()) == Pawn +correction &&
-                        button.Name[2].Equals('0'))
-                        this.ph = new promotion_hundler(Int32.Parse(button.Name.Split(',')[0]), this,true);
+                        button.Name[0].Equals('0'))
+                        this.ph = new promotion_hundler(Int32.Parse(button.Name.Split(',')[1]), this,true);
                     else
-                        send_move_to_server(chartointposition(this.xymarkedpeace[2]),
-                            chartointposition(this.xymarkedpeace[0]),
-                            chartointposition(button.Name[2]),
-                            chartointposition(button.Name[0])); //tell the server to make a move
+                        send_move_to_server(chartointposition(this.xymarkedpeace[0]),
+                            chartointposition(this.xymarkedpeace[2]),
+                            chartointposition(button.Name[0]),
+                            chartointposition(button.Name[2])); //tell the server to make a move
                 }
                 else// clicked on a unrelated button - reset the first "if" statements
                 {
@@ -261,7 +255,7 @@ namespace chessair_client
             return Convert.ToInt32(this.board[xvalue, yvalue].Tag) <6;
         } 
         
-        internal int chartoint(char character)
+        internal static int chartoint(char character)
         {
             return character - '0';
         }
@@ -310,28 +304,26 @@ namespace chessair_client
                         textFromServer = textFromServer.Remove(0, 10);
                         remove_all_potmoves();
                         // the [1] is before the [0], just exept it!!
-                        int[] movedata ={ chartointposition(textFromServer[1]), 
-                            chartointposition(textFromServer[0]), 
-                            chartointposition(textFromServer[3]), 
-                            chartointposition(textFromServer[2])};
+                        int[] movedata ={ chartointposition(textFromServer[0]), 
+                            chartointposition(textFromServer[1]), 
+                            chartointposition(textFromServer[2]), 
+                            chartointposition(textFromServer[3])};
                         move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);//moving peace to the new position
 
                         string[] edgecase = textFromServer.Split('#');
                         if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
                         {
-                            for(int i=0;i<movedata.Length;i++)
-                                Console.WriteLine(movedata[i]);
                             if (edgecase[1].Equals(castle.ToString())) //castling
                             {
-                                if (movedata[2] == 6) //right castle
+                                if (movedata[3] == 5) //right castle
                                     move_peace(7, movedata[1], 5, movedata[1]);
-                                else if (movedata[2] == 2)
+                                else if (movedata[3] == 1)
                                     move_peace(0, movedata[1], 3, movedata[1]);
 
                             }
                             else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
                             {
-                                delete_peace(movedata[2], movedata[3] - 1);//delete the captured pawn
+                                delete_peace(movedata[2]+(iswhite ? 1 : -1), movedata[3]);//delete the captured pawn
                             }
                             else //promotion
                             {
@@ -358,6 +350,7 @@ namespace chessair_client
                         }
                         
                         this.xymarkedpeace = null;//unmark pot moves of a peace
+                        add_historical_move(textFromServer);//add historical move
                         this.my_turn =! this.my_turn;//change the turn
                     }
                     else if (textFromServer.StartsWith("###posmoves###"))
@@ -366,8 +359,8 @@ namespace chessair_client
                         string[] movedata = textFromServer.Split(',');
                         foreach (string move in movedata)
                         {
-                            int i = chartointposition(move[1]);// the [1] is before the [0], just exept it!!
-                            int j = chartointposition(move[0]);
+                            int i = chartointposition(move[0]);// the [1] is before the [0], just exept it!!
+                            int j = chartointposition(move[1]);
                             board[i,j].Invoke((MethodInvoker)delegate ()
                             {
                                 board[i, j].FlatAppearance.BorderColor = Color.Red;
@@ -389,10 +382,37 @@ namespace chessair_client
             catch (Exception)
             {
                 // ignor the error... fired when the user loggs off
-                Console.WriteLine("uston we have a problemo");
+                MessageBox.Show("problemo");
             }
         }
-
+        private static char get_j_pos_as_letter(Char j_pos)
+        {
+            const string letters = "ABCDEFGH";
+            return letters[chartoint(j_pos)];
+        }
+        private void add_historical_move(string move)
+        {
+            string pos_to_num_for_notation(Char s)
+            {
+                return Math.Abs(chartoint(s) -7).ToString();
+            } 
+            Button b = new Button()
+            {
+                Text = get_j_pos_as_letter(move[1])+ pos_to_num_for_notation(move[0]) + "," + pos_to_num_for_notation(move[3]) + get_j_pos_as_letter(move[2]),
+                Font = new Font("Microsoft Sans Serif", (squeresize/5)),
+                Size = new Size(this.moves_history.Width / 2, squeresize), //-10
+                Margin = new Padding(0, 0, 0, 0),
+                BackColor = (my_turn == iswhite) ? Color.White : Color.Black,
+                ForeColor = (my_turn == iswhite) ? Color.Black : Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            b.FlatAppearance.BorderSize = 5;
+            b.FlatAppearance.BorderColor = b.BackColor;
+            moves_history.Invoke((MethodInvoker)delegate () { moves_history.Controls.Add(b); });//add new button
+            Control control = moves_history.Controls[moves_history.Controls.Count - 1];
+            moves_history.ScrollControlIntoView(control);//scroll to the new button
+        }
+        
         private void move_peace(int in_i, int in_j, int fn_i, int fn_j)
         {
             //moving peace to the new position
