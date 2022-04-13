@@ -60,7 +60,7 @@ namespace chess_air_Server.types_of_games
                     else //the AI needs to make a move...
                     {
                         Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
-                        Move aimove = this.chessboard.generator.choose_move(depth:5,iswhite:false);
+                        Move aimove = this.chessboard.generator.choose_move(depth:7,iswhite:false);
                         stopwatch.Stop();
                         Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} miliseconds, static evaluation: {2}",
                             aimove.print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());

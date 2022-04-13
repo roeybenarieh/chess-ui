@@ -38,7 +38,7 @@ namespace chess_air_Server.types_of_games
         
         internal void send_pot_moves(string messageReceived, ManageClient client)
         {
-            messageReceived = messageReceived.Remove(0, 14);
+            messageReceived = messageReceived.Remove(0, 14); 
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
             string ans = "";

@@ -347,10 +347,11 @@ namespace chessair_client
                                     add_peace(movedata[2], movedata[3], Knight + color);
                                 }
                             }
+                            add_historical_move(textFromServer, Int32.Parse(edgecase[1]));//add historical move
                         }
-                        
+                        else
+                            add_historical_move(textFromServer,no_edgecase);//add historical move
                         this.xymarkedpeace = null;//unmark pot moves of a peace
-                        add_historical_move(textFromServer);//add historical move
                         this.my_turn =! this.my_turn;//change the turn
                     }
                     else if (textFromServer.StartsWith("###posmoves###"))
@@ -390,15 +391,35 @@ namespace chessair_client
             const string letters = "ABCDEFGH";
             return letters[chartoint(j_pos)];
         }
-        private void add_historical_move(string move)
+        private void add_historical_move(string move, int edgecase)
         {
-            string pos_to_num_for_notation(Char s)
+            string print_in_notation(int move_edgecase, char j_start_pos, char i_start_pos, char j_end_pos, char i_end_pos)
             {
-                return Math.Abs(chartoint(s) -7).ToString();
-            } 
+                string promotion_peace = "";
+                if (move_edgecase != 0)
+                {
+                    promotion_peace = "-";
+                    switch (move_edgecase)
+                    {
+                        case pawn_promote_to_knight:
+                            promotion_peace += "k";
+                            break;
+                        case pawn_promote_to_bishop:
+                            promotion_peace += "b";
+                            break;
+                        case pawn_promote_to_rook:
+                            promotion_peace += "r";
+                            break;
+                        case pawn_promote_to_queen:
+                            promotion_peace += "q";
+                            break;
+                    }
+                }
+                return get_j_pos_as_letter(j_start_pos) + (8 - chartoint(i_start_pos)).ToString() + "," + get_j_pos_as_letter(j_end_pos) + (8 - chartoint(i_end_pos)).ToString() + promotion_peace;
+            }
             Button b = new Button()
             {
-                Text = get_j_pos_as_letter(move[1])+ pos_to_num_for_notation(move[0]) + "," + pos_to_num_for_notation(move[3]) + get_j_pos_as_letter(move[2]),
+                Text = print_in_notation(edgecase, move[1], move[0], move[3], move[2]),
                 Font = new Font("Microsoft Sans Serif", (squeresize/5)),
                 Size = new Size(this.moves_history.Width / 2, squeresize), //-10
                 Margin = new Padding(0, 0, 0, 0),
