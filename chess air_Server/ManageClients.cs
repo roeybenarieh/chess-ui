@@ -116,7 +116,6 @@ namespace chess_air_Server
                 else // client still connected
                 {
                     Console.WriteLine(messageReceived);
-                    Console.WriteLine(this.my_turn);
                     if (messageReceived.StartsWith("###login###"))// window1- login
                     {
                         String userdatatmp = messageReceived.Remove(0, 11);

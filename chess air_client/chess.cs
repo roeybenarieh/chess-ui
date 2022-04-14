@@ -313,13 +313,19 @@ namespace chessair_client
                         string[] edgecase = textFromServer.Split('#');
                         if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
                         {
+                            string edgecasemassage = "";
                             if (edgecase[1].Equals(castle.ToString())) //castling
                             {
-                                if (movedata[3] == 5) //right castle
-                                    move_peace(7, movedata[1], 5, movedata[1]);
-                                else if (movedata[3] == 1)
-                                    move_peace(0, movedata[1], 3, movedata[1]);
-
+                                if (movedata[3] - movedata[1] == 2)
+                                {  //king side
+                                    move_peace(movedata[0], 7, movedata[0], iswhite ? 5 : 4);
+                                    edgecasemassage = "0 - 0";
+                                }
+                                else
+                                {
+                                    move_peace(movedata[0], 0, movedata[0], iswhite ? 3 : 2);
+                                    edgecasemassage = "0-0-0";
+                                }
                             }
                             else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
                             {
@@ -330,27 +336,32 @@ namespace chessair_client
                                 int color = 0;
                                 if (!(this.iswhite ^ this.my_turn))//if only one of the bool is true, otherwise false
                                     color = 6;
+                                edgecasemassage = "-";
                                 if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
                                 {
                                     add_peace(movedata[2], movedata[3], Queen + color);
+                                    edgecasemassage += "q";
                                 }
                                 else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
                                 {
                                     add_peace(movedata[2], movedata[3], Rook + color);
+                                    edgecasemassage += "r";
                                 }
                                 else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
                                 {
                                     add_peace(movedata[2], movedata[3], Bishop + color);
+                                    edgecasemassage += "b";
                                 }
                                 else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
                                 {
                                     add_peace(movedata[2], movedata[3], Knight + color);
+                                    edgecasemassage += "k";
                                 }
                             }
-                            add_historical_move(textFromServer, Int32.Parse(edgecase[1]));//add historical move
+                            add_historical_move(textFromServer, edgecasemassage);//add historical move
                         }
                         else
-                            add_historical_move(textFromServer,no_edgecase);//add historical move
+                            add_historical_move(textFromServer);//add historical move
                         this.xymarkedpeace = null;//unmark pot moves of a peace
                         this.my_turn =! this.my_turn;//change the turn
                     }
@@ -380,7 +391,7 @@ namespace chessair_client
                                              ReceiveMessage,
                                              null);
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // ignor the error... fired when the user loggs off
                 MessageBox.Show("problemo");
@@ -391,36 +402,19 @@ namespace chessair_client
             const string letters = "ABCDEFGH";
             return letters[chartoint(j_pos)];
         }
-        private void add_historical_move(string move, int edgecase)
+        private void add_historical_move(string move, string edgecase_message="")
         {
-            string print_in_notation(int move_edgecase, char j_start_pos, char i_start_pos, char j_end_pos, char i_end_pos)
+            string print_in_notation(string move_edgecase, char j_start_pos, char i_start_pos, char j_end_pos, char i_end_pos)
             {
-                string promotion_peace = "";
-                if (move_edgecase != 0)
-                {
-                    promotion_peace = "-";
-                    switch (move_edgecase)
-                    {
-                        case pawn_promote_to_knight:
-                            promotion_peace += "k";
-                            break;
-                        case pawn_promote_to_bishop:
-                            promotion_peace += "b";
-                            break;
-                        case pawn_promote_to_rook:
-                            promotion_peace += "r";
-                            break;
-                        case pawn_promote_to_queen:
-                            promotion_peace += "q";
-                            break;
-                    }
-                }
-                return get_j_pos_as_letter(j_start_pos) + (8 - chartoint(i_start_pos)).ToString() + "," + get_j_pos_as_letter(j_end_pos) + (8 - chartoint(i_end_pos)).ToString() + promotion_peace;
+                if (move_edgecase.StartsWith("0"))
+                    return move_edgecase;
+                return get_j_pos_as_letter(j_start_pos) + (8 - chartoint(i_start_pos)).ToString() + "," 
+                    + get_j_pos_as_letter(j_end_pos) + (8 - chartoint(i_end_pos)).ToString() + move_edgecase;
             }
             Button b = new Button()
             {
-                Text = print_in_notation(edgecase, move[1], move[0], move[3], move[2]),
-                Font = new Font("Microsoft Sans Serif", (squeresize/5)),
+                Text = print_in_notation(edgecase_message, move[1], move[0], move[3], move[2]),
+                Font = new Font("Microsoft Sans Serif", (squeresize / 5)),
                 Size = new Size(this.moves_history.Width / 2, squeresize), //-10
                 Margin = new Padding(0, 0, 0, 0),
                 BackColor = (my_turn == iswhite) ? Color.White : Color.Black,
@@ -429,9 +423,11 @@ namespace chessair_client
             };
             b.FlatAppearance.BorderSize = 5;
             b.FlatAppearance.BorderColor = b.BackColor;
-            moves_history.Invoke((MethodInvoker)delegate () { moves_history.Controls.Add(b); });//add new button
-            Control control = moves_history.Controls[moves_history.Controls.Count - 1];
-            moves_history.ScrollControlIntoView(control);//scroll to the new button
+            moves_history.Invoke((MethodInvoker)delegate () { moves_history.Controls.Add(b);
+                Control control = moves_history.Controls[moves_history.Controls.Count - 1];
+                moves_history.ScrollControlIntoView(control);//scroll to the new button
+            });//add new button
+            
         }
         
         private void move_peace(int in_i, int in_j, int fn_i, int fn_j)
