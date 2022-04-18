@@ -21,6 +21,7 @@ namespace chessair_client
         private Button[,] board;
         internal FlowLayoutPanel moves_history;
         internal promotion_hundler ph;
+        internal Boolean in_the_middle_of_game = false;
         internal Boolean my_turn =false;
         internal Boolean iswhite = true;
         internal string xymarkedpeace = null; // X,Y format;
@@ -49,6 +50,18 @@ namespace chessair_client
 
             this.oponent_nickname.Invoke((MethodInvoker)delegate () { this.oponent_nickname.Location =  new Point(boarders_from_window_verticale, boarders_from_window_diagonal-30);});
             board = new Button[boardsize, boardsize];
+            Button resign = new Button();
+            resign.Text = "resign";
+            resign.Size = new Size(squeresize, squeresize/2);
+            resign.Location = new Point(boarders_from_window_verticale-resign.Size.Width-10, boarders_from_window_diagonal /* resign.Size.Height*/);
+            resign.FlatStyle = FlatStyle.Flat;
+            resign.TextAlign = ContentAlignment.MiddleCenter;
+            resign.FlatStyle = FlatStyle.Flat;
+            resign.BackColor = Color.Green;
+            resign.FlatAppearance.BorderColor = Color.Black;
+            resign.FlatAppearance.BorderSize = 2;
+            resign.Click += new System.EventHandler(resign_Click);
+            Controls.Add(resign);
             for (int i = 0; i < boardsize; i++)// טור
             {
                 for (int j = 0; j < boardsize; j++)// שורה
@@ -160,6 +173,7 @@ namespace chessair_client
             aivsai.Invoke((MethodInvoker)delegate () { aivsai.Visible = false; });
             my_nickname.Invoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
             oponent_nickname.Invoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
+            in_the_middle_of_game = true;
         }
         
         private void End_game_vizualy(String outcome)// chnage the form componnent for the end of the game
@@ -172,6 +186,7 @@ namespace chessair_client
             aivsai.Invoke((MethodInvoker)delegate () { aivsai.Visible = true; });
             outcome = outcome.Remove(0,13);
             this.outcome_tx.Invoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome+"!"; });
+            in_the_middle_of_game = false;
         }
 
         private void button_Click(object sender, EventArgs e)
@@ -205,7 +220,13 @@ namespace chessair_client
                 }
             }
         }
-        
+
+        private void resign_Click(object sender, EventArgs e)
+        {
+            if(in_the_middle_of_game)
+                Program.SendMessage("###resignation###");
+        }
+
         public void send_move_to_server(int start_j, int start_i, int end_j, int end_i, string promotion =null)
         {
             if(promotion == null)

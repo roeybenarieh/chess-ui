@@ -263,9 +263,13 @@ namespace chess_air_Server
                         {
                             this.ready_to_play = false;
                         }
-                        else if(this.my_turn)//in the middle of a game..
+                        else if(this.game != null)//in the middle of a game..
                         {
-                            if(this.game != null) //if this game exists and it is this clients turn
+                            if (messageReceived.Equals("###resignation###"))
+                            {
+                                this.game.resignationHandler(this);
+                            }
+                            else if(this.my_turn) //if it is this clients turn
                                 this.game.GameMessageHandler(messageReceived);
                         }
                     }

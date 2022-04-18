@@ -60,7 +60,7 @@ namespace chess_air_Server.types_of_games
                     else //the AI needs to make a move...
                     {
                         Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
-                        Move aimove = this.chessboard.generator.choose_move(depth:4,iswhite:false);
+                        Move aimove = this.chessboard.generator.choose_move(depth:5,iswhite:false);
                         stopwatch.Stop();
                         Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} miliseconds, static evaluation: {2}",
                             aimove.print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
@@ -81,7 +81,7 @@ namespace chess_air_Server.types_of_games
                             }
                             else //draw
                             {
-                                Mclient1.SendMessage("###endgame###draw");
+                                Mclient1.endgame("###endgame###draw");
                             }
                             if (Mclient1white)
                                 base.savegame(white_player_id: this.Mclient1.client_id);
@@ -96,6 +96,14 @@ namespace chess_air_Server.types_of_games
             { //message: ###pot_move###XY
                 send_pot_moves(messageReceived, this.Mclient1);
             }
+            else if(messageReceived.Equals("###resignation###"))
+                Mclient1.endgame("you resigned");
         }
+
+        public override void resignationHandler(ManageClient resigned_client)
+        {
+            resigned_client.endgame("you resigned");
+        }
+
     }
 }

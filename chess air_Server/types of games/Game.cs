@@ -25,7 +25,11 @@ namespace chess_air_Server.types_of_games
         {
             return;// only implimentation in the inheritate objs.
         }
-        
+        public virtual void resignationHandler(ManageClient resigned_client) // recieve message only from the client
+        {
+            return;// only implimentation in the inheritate objs.
+        }
+
         public void savegame(int white_player_id=-1, int black_player_id=-1)
         {
             string w_player_id = white_player_id.ToString(); string b_player_id = black_player_id.ToString();

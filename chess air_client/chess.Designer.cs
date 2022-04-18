@@ -91,7 +91,7 @@ namespace chessair_client
             this.play_friend.BackColor = System.Drawing.Color.ForestGreen;
             this.play_friend.Cursor = System.Windows.Forms.Cursors.Hand;
             this.play_friend.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.play_friend.Location = new System.Drawing.Point(8, 138);
+            this.play_friend.Location = new System.Drawing.Point(8, 151);
             this.play_friend.Name = "play_friend";
             this.play_friend.Size = new System.Drawing.Size(262, 120);
             this.play_friend.TabIndex = 2;
@@ -105,7 +105,7 @@ namespace chessair_client
             this.outcome_tx.BackColor = System.Drawing.Color.Transparent;
             this.outcome_tx.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Underline);
             this.outcome_tx.ForeColor = System.Drawing.Color.Green;
-            this.outcome_tx.Location = new System.Drawing.Point(28, 87);
+            this.outcome_tx.Location = new System.Drawing.Point(28, 77);
             this.outcome_tx.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.outcome_tx.Name = "outcome_tx";
             this.outcome_tx.Size = new System.Drawing.Size(0, 31);
@@ -117,7 +117,7 @@ namespace chessair_client
             this.playai.BackColor = System.Drawing.Color.ForestGreen;
             this.playai.Cursor = System.Windows.Forms.Cursors.Hand;
             this.playai.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.playai.Location = new System.Drawing.Point(8, 271);
+            this.playai.Location = new System.Drawing.Point(8, 284);
             this.playai.Name = "playai";
             this.playai.Size = new System.Drawing.Size(262, 120);
             this.playai.TabIndex = 4;
@@ -131,7 +131,7 @@ namespace chessair_client
             this.aivsai.BackColor = System.Drawing.Color.ForestGreen;
             this.aivsai.Cursor = System.Windows.Forms.Cursors.Hand;
             this.aivsai.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.aivsai.Location = new System.Drawing.Point(8, 402);
+            this.aivsai.Location = new System.Drawing.Point(8, 415);
             this.aivsai.Name = "aivsai";
             this.aivsai.Size = new System.Drawing.Size(262, 120);
             this.aivsai.TabIndex = 5;

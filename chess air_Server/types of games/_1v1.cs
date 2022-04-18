@@ -95,6 +95,17 @@ namespace chess_air_Server
             { //message: ###pot_move###XY
                 send_pot_moves(messageReceived, client);
             }
+            else if (messageReceived.Equals("###resignation###")) 
+            {
+
+            }
+        }
+
+        public override void resignationHandler(ManageClient resigned_client)
+        {
+            resigned_client.endgame("you resigned");
+            (this.Mclient1.Equals(resigned_client) ? Mclient2 : Mclient1).endgame("you won,\r\nother player resigned");
+
         }
 
     }
