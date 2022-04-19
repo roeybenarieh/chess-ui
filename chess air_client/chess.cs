@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace chessair_client
@@ -92,11 +93,11 @@ namespace chessair_client
             this.moves_history.AutoScroll = true;
             this.moves_history.BackColor = Color.White;
             this.moves_history.FlowDirection = FlowDirection.LeftToRight;
-            this.moves_history.WrapContents = true;
-            this.moves_history.AutoSize = false;
             this.moves_history.AutoScroll = true;
+            this.moves_history.WrapContents = true;
+            //this.moves_history.AutoSize = false;
             this.moves_history.Margin = new Padding(0, 0, 0, 0);
-            this.moves_history.AutoScrollMargin = new Size(0, 0);
+            this.moves_history.AutoScrollMargin = new Size(5, 0);
             Controls.Add(this.moves_history);
             
             this.ph = new promotion_hundler(0, this, false);
@@ -324,13 +325,20 @@ namespace chessair_client
                     {// after ###move## there is X,Y start cordinations and X,Y end cordinations
                         textFromServer = textFromServer.Remove(0, 10);
                         remove_all_potmoves();
+                        //come buck to the current board position:
+                        moves_history.Invoke((MethodInvoker)delegate () {
+                            if (moves_history.Controls.Count != 0)
+                            {
+                                Control lastmove = moves_history.Controls[moves_history.Controls.Count - 1];
+                                set_notation_at_board(lastmove.Tag.ToString());
+                            }
+                        });
                         // the [1] is before the [0], just exept it!!
                         int[] movedata ={ chartointposition(textFromServer[0]), 
                             chartointposition(textFromServer[1]), 
                             chartointposition(textFromServer[2]), 
                             chartointposition(textFromServer[3])};
                         move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);//moving peace to the new position
-
                         string[] edgecase = textFromServer.Split('#');
                         if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
                         {
@@ -418,6 +426,7 @@ namespace chessair_client
                 MessageBox.Show("problemo");
             }
         }
+        
         private static char get_j_pos_as_letter(Char j_pos)
         {
             const string letters = "ABCDEFGH";
@@ -444,13 +453,70 @@ namespace chessair_client
             };
             b.FlatAppearance.BorderSize = 5;
             b.FlatAppearance.BorderColor = b.BackColor;
+            b.Tag = get_notation();
+            b.Click += new System.EventHandler(this.histocial_button_Click);
             moves_history.Invoke((MethodInvoker)delegate () { moves_history.Controls.Add(b);
                 Control control = moves_history.Controls[moves_history.Controls.Count - 1];
                 moves_history.ScrollControlIntoView(control);//scroll to the new button
             });//add new button
             
         }
-        
+        private void histocial_button_Click(object sender, EventArgs e)
+        {
+            Button button = sender as Button;
+            remove_all_potmoves();
+            this.ph.stop_show();
+            set_notation_at_board(button.Tag.ToString());
+        }
+        private const string no_peace = "15";
+        private string get_notation()
+        {
+            //notation format: 1,2,3,4,5,6,7,8/9,0,11,12,15,10
+            //15 means there is no peace in there, /means a new row, numberms represent the pictured corolated to the wanted peace
+            string notation = "";
+            for (int i = 0; i < boardsize; i++)
+            {
+                for (int j = 0; j < boardsize; j++)
+                {
+                    if (board[i, j].BackgroundImage != null)
+                    {
+                        notation += board[i, j].Tag;//gets the number of the 
+                    }
+                    else
+                    {
+                        notation += no_peace;//gets the number of the 
+                    }
+                    if (j != boardsize - 1) //if not the last line
+                        notation += ",";
+                }
+                if (i != boardsize - 1) //if not the last line
+                    notation += "/";
+            }
+            return notation;
+        }
+        private void set_notation_at_board(string notation)
+        {
+            string[] rows = notation.Split('/');
+            Parallel.For(0, boardsize, (row) =>
+            {
+                string[] peaces = rows[row].Split(',');
+                for(int j=0;j<peaces.Length;j++)
+                {
+                    if (peaces[j].Equals(no_peace))
+                    {
+                        delete_peace(row, j);
+                    }
+                    else
+                    {
+                        //int peace = Int32.Parse(peaces[j]);
+                        //if (board[row, j].Tag != null && board[row, j].Tag.Equals(peaces[j]))
+                        //    break;
+                        add_peace(board[row, j], Int32.Parse(peaces[j]));
+                    }
+                }
+            });
+        }
+
         private void move_peace(int in_i, int in_j, int fn_i, int fn_j)
         {
             //moving peace to the new position
