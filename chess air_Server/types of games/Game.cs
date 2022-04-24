@@ -10,7 +10,7 @@ namespace chess_air_Server.types_of_games
     public class Game
     {
         internal Random rn = new Random();
-        internal chessboard chessboard = new chessboard();
+        internal Chessboard chessboard = new Chessboard();
         public List<Move> potmoves = new List<Move>();
 
         internal ManageClient Mclient1;
@@ -37,7 +37,7 @@ namespace chess_air_Server.types_of_games
                 b_player_id = "null";
             if(white_player_id == -1)
                 w_player_id = "null";
-            DBH.insert_game(w_player_id, b_player_id, chessboard.get_all_played_moves(false));
+            DBH.insert_game(w_player_id, b_player_id, chessboard.Get_all_played_moves(false));
         }
         
         internal void send_pot_moves(string messageReceived, ManageClient client)
@@ -46,12 +46,12 @@ namespace chess_air_Server.types_of_games
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
             string ans = "";
-            if (this.chessboard.board[starti * chessboard.board_size + startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
+            if (this.chessboard.board[starti * Chessboard.board_size + startj].Isocupied()) //if the peace exists - if not, probably hackers ;-)
             {
-                this.potmoves = this.chessboard.generator.generate_legal_moves(this.chessboard.board[starti * chessboard.board_size + startj].Peace);
+                this.potmoves = this.chessboard.generator.Generate_legal_moves(this.chessboard.board[starti * Chessboard.board_size + startj].Peace);
                 foreach (Move move in this.potmoves)
                 {
-                    ans += chessboard.get_i_pos(move.endsquare).ToString() + chessboard.get_j_pos(move.endsquare).ToString() + ",";
+                    ans += Chessboard.Get_i_pos(move.endsquare).ToString() + Chessboard.Get_j_pos(move.endsquare).ToString() + ",";
                 }
                 if (ans.EndsWith(",")) //if there are moves at all there has to be "," at the end of the string
                 {
@@ -71,7 +71,7 @@ namespace chess_air_Server.types_of_games
             messageReceived = messageReceived.Remove(0, 10);
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
-            if (this.chessboard.board[starti * chessboard.board_size + startj].isocupied()) //if the peace exists - if not, probably hackers ;-)
+            if (this.chessboard.board[starti * Chessboard.board_size + startj].Isocupied()) //if the peace exists - if not, probably hackers ;-)
             {
                 int start_position = starti * 8 + startj;
                 int end_position = char_to_int(messageReceived[2]) * 8 + char_to_int(messageReceived[3]);
@@ -82,7 +82,7 @@ namespace chess_air_Server.types_of_games
                 }
                 foreach (Move move in this.potmoves)
                 {
-                    Console.WriteLine(move.to_mininal_string());
+                    Console.WriteLine(move.To_mininal_string());
                     if (move.startsquare == start_position && move.endsquare == end_position) //check the move legality
                     {
                         if (promotion && move.edgecase != char_to_int(messageReceived[4]))

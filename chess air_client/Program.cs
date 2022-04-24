@@ -10,8 +10,8 @@ namespace chessair_client
 {
     public static class Program
     {
-        private static int portNo = 500;
-        private static string ipAddress = "127.0.0.1";
+        private static readonly int portNo = 500;
+        private static readonly string ipAddress = "127.0.0.1";
         public static TcpClient client;
         public static byte[] data;
         [STAThread]
@@ -21,8 +21,8 @@ namespace chessair_client
           Application.SetCompatibleTextRenderingDefault(false);
           ///
           //Application.Run(new chessair());
-          connect_server();
-          Application.Run(new login());
+          Connect_server();
+          Application.Run(new Login());
           //new login().ShowDialog();
           System.Windows.Forms.Application.Exit();
           
@@ -46,7 +46,7 @@ namespace chessair_client
             }
         }
 
-        public static void connect_server()
+        public static void Connect_server()
         {
             if (client == null)
             {
@@ -56,7 +56,7 @@ namespace chessair_client
             }
         }
         
-        public static void disconnect_server()
+        public static void Disconnect_server()
         {
             SendMessage("###quit###");
             if (client != null)

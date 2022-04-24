@@ -151,7 +151,7 @@ namespace chessair_client
             this.changepasswordbutton.TabIndex = 10;
             this.changepasswordbutton.Text = "change pasword";
             this.changepasswordbutton.UseVisualStyleBackColor = false;
-            this.changepasswordbutton.Click += new System.EventHandler(this.changepasswordbutton_Click);
+            this.changepasswordbutton.Click += new System.EventHandler(this.Changepasswordbutton_Click);
             // 
             // sidenote_txt
             // 

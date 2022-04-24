@@ -17,20 +17,20 @@ namespace chessair_client
             
             l.BeginInvoke((MethodInvoker)delegate () { l.Hide(); });
             InitializeComponent();
-            Program.connect_server();
+            Program.Connect_server();
             sidenote_txt.Text = reason_for_changing_password;
         }
 
-        private void changepasswordbutton_Click(object sender, EventArgs e)
+        private void Changepasswordbutton_Click(object sender, EventArgs e)
         {
             if (username_txt.Text == "")
-                change_sidenote_txt("username must be inserted");
+                Change_sidenote_txt("username must be inserted");
             else if (current_password_txt.Text == "")
-                change_sidenote_txt("current passworde must be inserted");
+                Change_sidenote_txt("current passworde must be inserted");
             else if (new_password_txt.Text == "")
-                change_sidenote_txt("new password must be inserted");
+                Change_sidenote_txt("new password must be inserted");
             else if (new_password2_txt.Text == "")
-                change_sidenote_txt("you must repead the new password");
+                Change_sidenote_txt("you must repead the new password");
             else
             {
                 Program.SendMessage("###change_password###" + username_txt.Text + "$" + current_password_txt.Text + "$" + new_password_txt.Text + "$" + new_password2_txt.Text);
@@ -61,21 +61,21 @@ namespace chessair_client
 
                     if (textFromServer == "bad password")
                     {
-                        change_sidenote_txt("bad password: too similar to the current password");
+                        Change_sidenote_txt("bad password: too similar to the current password");
                     }
                     else if (textFromServer == "there is a problemo")
                     {
-                        change_sidenote_txt("there is a problem, the server wasnt able to change your password. please try again in 5 minutes");
+                        Change_sidenote_txt("there is a problem, the server wasnt able to change your password. please try again in 5 minutes");
                     }
                     else if (textFromServer == "repeated password isn't correct" || textFromServer == "username or current password are incorect!")
                     {
-                        change_sidenote_txt(textFromServer);
+                        Change_sidenote_txt(textFromServer);
                     }//
                     else if (textFromServer == "password changed")
                     {
-                        change_sidenote_txt("password changed, opening the game");
+                        Change_sidenote_txt("password changed, opening the game");
                         System.Threading.Thread.Sleep(1500);
-                        chess chessair = new chess(this);
+                        Chess chessair = new Chess(this);
                         chessair.ShowDialog();
                     }
                 }
@@ -90,7 +90,7 @@ namespace chessair_client
                 // ignor the error... fired when the user loggs off
             }
         }
-        public void change_sidenote_txt(string s)
+        public void Change_sidenote_txt(string s)
         {
             sidenote_txt.BeginInvoke((MethodInvoker)delegate () {
                 sidenote_txt.Text = s;

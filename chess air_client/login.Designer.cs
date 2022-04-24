@@ -1,6 +1,6 @@
 ﻿namespace connect4_client
 {
-    partial class login
+    partial class Login
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(login));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Login));
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -110,7 +110,7 @@
             this.loginbutton.TabIndex = 3;
             this.loginbutton.Text = "login";
             this.loginbutton.UseVisualStyleBackColor = false;
-            this.loginbutton.Click += new System.EventHandler(this.loginbutton_Click);
+            this.loginbutton.Click += new System.EventHandler(this.Loginbutton_Click);
             // 
             // outputtext
             // 
@@ -134,7 +134,7 @@
             this.registration.TabIndex = 7;
             this.registration.Text = "create new acount";
             this.registration.UseVisualStyleBackColor = false;
-            this.registration.Click += new System.EventHandler(this.registration_Click);
+            this.registration.Click += new System.EventHandler(this.Registration_Click);
             // 
             // pictureBox1
             // 
@@ -174,7 +174,7 @@
             this.Controls.Add(this.label1);
             this.Name = "login";
             this.Text = "login";
-            this.Load += new System.EventHandler(this.login_Load);
+            this.Load += new System.EventHandler(this.Login_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.ResumeLayout(false);

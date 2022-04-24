@@ -9,14 +9,14 @@ using System.Windows.Forms;
 
 namespace connect4_client
 {
-    public class promotion_hundler
+    public class Promotion_hundler
     {
-        private readonly chess chess;
-        private Button[] peace;
-        private int i_cor;
+        private readonly Chess chess;
+        private readonly Button[] peace;
+        private readonly int i_cor;
         private static readonly int[] promotion_peaces = {4,3,2,1 };
         //works if black or white
-        public promotion_hundler(int i_cor, chess chess,bool show)
+        public Promotion_hundler(int i_cor, Chess chess,bool show)
         {
             int correction = 0;
             if (chess.iswhite)
@@ -28,19 +28,19 @@ namespace connect4_client
             {
                 peace[i] = new Button();
                 peace[i].Name = promotion_peaces[i].ToString();
-                peace[i].Location = new Point(chess.boarders_from_window_verticale + (chess.squeresize * i_cor), chess.boarders_from_window_diagonal + (chess.squeresize * i));
-                peace[i].Size = new Size(chess.squeresize, chess.squeresize);
+                peace[i].Location = new Point(Chess.boarders_from_window_verticale + (Chess.squeresize * i_cor), Chess.boarders_from_window_diagonal + (Chess.squeresize * i));
+                peace[i].Size = new Size(Chess.squeresize, Chess.squeresize);
                 peace[i].FlatStyle = FlatStyle.Flat;
                 peace[i].FlatAppearance.BorderSize = 5;
                 peace[i].BackColor = Color.Honeydew;
                 peace[i].FlatAppearance.BorderColor = peace[i].BackColor;
                 peace[i].BackgroundImageLayout = ImageLayout.Center;
-                peace[i].Click += new System.EventHandler(this.pick_promotion);
+                peace[i].Click += new System.EventHandler(this.Pick_promotion);
                 peace[i].Visible = true;
-                chess.add_peace(peace[i], promotion_peaces[i]+correction);
+                chess.Add_peace(peace[i], promotion_peaces[i]+correction);
             }
             if (!show)
-                stop_show();
+                Stop_show();
             for (int i = 0; i < this.peace.Length; i++)
             {
                 chess.Controls.Add(peace[i]);
@@ -48,19 +48,19 @@ namespace connect4_client
             }
         }
 
-        private void pick_promotion(object sender, EventArgs e)
+        private void Pick_promotion(object sender, EventArgs e)
         {
             Button button = sender as Button;
             int row = chess.iswhite ? 0 : 7;
 
-            chess.send_move_to_server(chess.chartointposition(chess.xymarkedpeace[0]) ,
-                chess.chartointposition(chess.xymarkedpeace[2]) ,
+            chess.Send_move_to_server(chess.Chartointposition(chess.xymarkedpeace[0]) ,
+                chess.Chartointposition(chess.xymarkedpeace[2]) ,
                 row,
                 Math.Abs(row - this.i_cor),
                 button.Name);
-            stop_show();
+            Stop_show();
         }
-        public void stop_show()
+        public void Stop_show()
         {
             for (int i = 0; i < this.peace.Length; i++)
                 peace[i].Visible = false;

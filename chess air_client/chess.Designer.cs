@@ -2,7 +2,7 @@
 
 namespace chessair_client
 {
-    partial class chess
+    partial class Chess
     {
         /// <summary>
         /// Required designer variable.
@@ -31,14 +31,13 @@ namespace chessair_client
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(chess));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Chess));
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.oponent_nickname = new System.Windows.Forms.Label();
             this.my_nickname = new System.Windows.Forms.Label();
             this.play_friend = new System.Windows.Forms.Button();
             this.outcome_tx = new System.Windows.Forms.Label();
             this.playai = new System.Windows.Forms.Button();
-            this.aivsai = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // imageList1
@@ -97,7 +96,7 @@ namespace chessair_client
             this.play_friend.TabIndex = 2;
             this.play_friend.Text = "play vs friend";
             this.play_friend.UseVisualStyleBackColor = false;
-            this.play_friend.Click += new System.EventHandler(this.play_Click);
+            this.play_friend.Click += new System.EventHandler(this.Play_Click);
             // 
             // outcome_tx
             // 
@@ -123,21 +122,7 @@ namespace chessair_client
             this.playai.TabIndex = 4;
             this.playai.Text = "play vs AI";
             this.playai.UseVisualStyleBackColor = false;
-            this.playai.Click += new System.EventHandler(this.playai_Click);
-            // 
-            // aivsai
-            // 
-            this.aivsai.AutoEllipsis = true;
-            this.aivsai.BackColor = System.Drawing.Color.ForestGreen;
-            this.aivsai.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.aivsai.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.aivsai.Location = new System.Drawing.Point(8, 415);
-            this.aivsai.Name = "aivsai";
-            this.aivsai.Size = new System.Drawing.Size(262, 120);
-            this.aivsai.TabIndex = 5;
-            this.aivsai.Text = "AI vs AI";
-            this.aivsai.UseVisualStyleBackColor = false;
-            this.aivsai.Click += new System.EventHandler(this.aivsai_Click);
+            this.playai.Click += new System.EventHandler(this.Playai_Click);
             // 
             // chess
             // 
@@ -145,7 +130,6 @@ namespace chessair_client
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1236, 709);
-            this.Controls.Add(this.aivsai);
             this.Controls.Add(this.playai);
             this.Controls.Add(this.outcome_tx);
             this.Controls.Add(this.play_friend);
@@ -154,7 +138,7 @@ namespace chessair_client
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Name = "chess";
             this.Text = "chessair";
-            this.Load += new System.EventHandler(this.chess_Load);
+            this.Load += new System.EventHandler(this.Chess_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -167,7 +151,6 @@ namespace chessair_client
         private System.Windows.Forms.Button play_friend;
         private System.Windows.Forms.Label outcome_tx;
         private System.Windows.Forms.Button playai;
-        private System.Windows.Forms.Button aivsai;
     }
 }
 

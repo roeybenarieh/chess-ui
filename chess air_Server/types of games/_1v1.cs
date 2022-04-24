@@ -59,14 +59,14 @@ namespace chess_air_Server
                 {
                     base.send_move(Mclient1, messageReceived, move.edgecase);//send the white clients that the move has been made
                     base.send_move(Mclient2, messageReceived, move.edgecase);//send the white clients that the move has been made
-                    this.chessboard.manualy_makemove(move);
+                    this.chessboard.Manualy_makemove(move);
                     this.switch_players_turn();
                     Console.WriteLine(this.Mclient1.get_nick() + " VS " + this.Mclient2.get_nick() + "\n" + this.chessboard.ToString());
                     //check if the game ended:
                     //if the new players turn cant move anymore
-                    if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the player cant move at all.
+                    if (this.chessboard.generator.Generate_all_legal_moves().Count == 0) //the player cant move at all.
                     {
-                        if (this.chessboard.current_player_king_in_check()) //checkmate
+                        if (this.chessboard.Current_player_king_in_check()) //checkmate
                         {
                             if (this.Mclient1white == this.chessboard.white_turn) //its Mclient1white current turn to move
                             {

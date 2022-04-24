@@ -14,14 +14,14 @@ namespace chessair_client
 {
     public partial class register : Form
     {
-        Form f = null;
+        readonly Form f = null;
         public register(Form f)
         {
             f.Hide();
             this.f = f;
             InitializeComponent();
         }
-        private void regist_Click(object sender, EventArgs e)
+        private void Regist_Click(object sender, EventArgs e)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace chessair_client
                     }
                     else {
                         outputtext.Text = "";
-                        Program.connect_server();
+                        Program.Connect_server();
                         Program.SendMessage("###regist###" + rusername.Text + "&" + rpassword.Text + "&" + rnickname.Text + "&" + remail.Text + "&" + rage.Text + "&" + rcountry.Text + "&" + rcity.Text);
                         Program.client.GetStream().BeginRead(Program.data,
                                                          0,
@@ -70,7 +70,7 @@ namespace chessair_client
             }
         }
 
-        private void label2_Click(object sender, EventArgs e){ }
+        private void Label2_Click(object sender, EventArgs e){ }
 
         private void ReceiveMessage(IAsyncResult ar)
         {
@@ -122,15 +122,20 @@ namespace chessair_client
             }
         }
 
-        private void register_FormClosing(object sender, FormClosingEventArgs e)
+        private void Register_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Program.disconnect_server();
+            Program.Disconnect_server();
         }
 
-        private void back_Click(object sender, EventArgs e)
+        private void Back_Click(object sender, EventArgs e)
         {
-            login login = new login(this);
+            Login login = new Login(this);
             login.ShowDialog();
+        }
+
+        private void Remail_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

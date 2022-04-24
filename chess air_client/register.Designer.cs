@@ -71,13 +71,13 @@
             this.remail.Name = "remail";
             this.remail.Size = new System.Drawing.Size(173, 30);
             this.remail.TabIndex = 5;
-            this.remail.Text = "roey280404@gmail.com";
+            this.remail.TextChanged += new System.EventHandler(this.Remail_TextChanged);
             // 
             // rpassword
             // 
             this.rpassword.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
             this.rpassword.Location = new System.Drawing.Point(242, 96);
-            this.rpassword.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.rpassword.Margin = new System.Windows.Forms.Padding(2);
             this.rpassword.Name = "rpassword";
             this.rpassword.Size = new System.Drawing.Size(173, 30);
             this.rpassword.TabIndex = 3;
@@ -86,7 +86,7 @@
             // 
             this.rusername.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
             this.rusername.Location = new System.Drawing.Point(242, 38);
-            this.rusername.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.rusername.Margin = new System.Windows.Forms.Padding(2);
             this.rusername.Name = "rusername";
             this.rusername.Size = new System.Drawing.Size(173, 30);
             this.rusername.TabIndex = 2;
@@ -123,13 +123,13 @@
             this.regist.Cursor = System.Windows.Forms.Cursors.Hand;
             this.regist.Font = new System.Drawing.Font("Microsoft Sans Serif", 45F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(177)));
             this.regist.Location = new System.Drawing.Point(478, 196);
-            this.regist.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.regist.Margin = new System.Windows.Forms.Padding(2);
             this.regist.Name = "regist";
             this.regist.Size = new System.Drawing.Size(286, 201);
             this.regist.TabIndex = 4;
             this.regist.Text = "regist";
             this.regist.UseVisualStyleBackColor = false;
-            this.regist.Click += new System.EventHandler(this.regist_Click);
+            this.regist.Click += new System.EventHandler(this.Regist_Click);
             // 
             // nickname
             // 
@@ -166,7 +166,7 @@
             this.city.Size = new System.Drawing.Size(81, 46);
             this.city.TabIndex = 9;
             this.city.Text = "city";
-            this.city.Click += new System.EventHandler(this.label2_Click);
+            this.city.Click += new System.EventHandler(this.Label2_Click);
             // 
             // country
             // 
@@ -254,7 +254,7 @@
             this.back.TabIndex = 18;
             this.back.Text = "←Back";
             this.back.UseVisualStyleBackColor = false;
-            this.back.Click += new System.EventHandler(this.back_Click);
+            this.back.Click += new System.EventHandler(this.Back_Click);
             // 
             // register
             // 

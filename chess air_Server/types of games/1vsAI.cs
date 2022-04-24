@@ -38,13 +38,13 @@ namespace chess_air_Server.types_of_games
                 if (move.startsquare != -1) //found a ligal move
                 {
                     base.send_move(Mclient1, messageReceived, move.edgecase);//send the white clients that the move has been made
-                    this.chessboard.manualy_makemove(move);
+                    this.chessboard.Manualy_makemove(move);
                     Console.WriteLine(this.Mclient1.get_nick() + " VS AI\n" + this.chessboard.ToString());
                     //check if the game ended:
                     //if the new players turn cant move anymore
-                    if (this.chessboard.generator.generate_all_legal_moves().Count == 0) //the AI cant move at all.
+                    if (this.chessboard.generator.Generate_all_legal_moves().Count == 0) //the AI cant move at all.
                     {
-                        if (this.chessboard.current_player_king_in_check()) //checkmate
+                        if (this.chessboard.Current_player_king_in_check()) //checkmate
                         {
                             Mclient1.endgame("you won");
                         }
@@ -60,22 +60,22 @@ namespace chess_air_Server.types_of_games
                     else //the AI needs to make a move...
                     {
                         Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
-                        Move aimove = this.chessboard.generator.choose_move(depth:4,iswhite:false);
+                        Move aimove = this.chessboard.generator.Choose_move(depth:4,iswhite:false);
                         stopwatch.Stop();
                         Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} miliseconds, static evaluation: {2}",
-                            aimove.print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
+                            aimove.Print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
 
-                        this.chessboard.manualy_makemove(aimove);
+                        this.chessboard.Manualy_makemove(aimove);
                         Console.WriteLine(this.chessboard.ToString());
 
                         base.send_move(Mclient1,
-                            "###move###" + chessboard.get_i_pos(aimove.startsquare) + chessboard.get_j_pos(aimove.startsquare)
-                            + chessboard.get_i_pos(aimove.endsquare) + chessboard.get_j_pos(aimove.endsquare)
+                            "###move###" + Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare)
+                            + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare)
                             , aimove.edgecase);//send the white clients that the move has been made
 
-                        if(this.chessboard.generator.generate_all_legal_moves().Count ==0)//the AI won
+                        if(this.chessboard.generator.Generate_all_legal_moves().Count ==0)//the AI won
                         {
-                            if (this.chessboard.current_player_king_in_check()) //checkmate
+                            if (this.chessboard.Current_player_king_in_check()) //checkmate
                             {
                                 Mclient1.endgame("you lost");
                             }

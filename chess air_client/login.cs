@@ -11,22 +11,22 @@ using System.Windows.Forms;
 
 namespace connect4_client
 {
-    public partial class login : Form
+    public partial class Login : Form
     {
-        Button[] capchab = new Button[6];
+        private readonly Button[] capchab = new Button[6];
 
-        public login(Form f = null)
+        public Login(Form f = null)
         {
             if(f !=null)
                 f.Hide();
             InitializeComponent();
         }
-        private void login_FormClosing(object sender, FormClosingEventArgs e)
+        private void Login_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Program.disconnect_server();
+            Program.Disconnect_server();
         }
 
-        private void loginbutton_Click(object sender, EventArgs e)
+        private void Loginbutton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace connect4_client
                         {
                             outputtext.Text = "";
                             // connect to the server
-                            Program.connect_server();
+                            Program.Connect_server();
                             Program.SendMessage("###login###" + username.Text + "&" + password.Text);
                             Program.client.GetStream().BeginRead(Program.data,
                                                              0,
@@ -141,7 +141,7 @@ namespace connect4_client
                                 capchabp.Size = new Size(60, 60);
                                 capchabp.Text = "positive";
                                 capchabp.BackColor = Color.Transparent;
-                                capchabp.Click += new System.EventHandler(this.capcha_Click);
+                                capchabp.Click += new System.EventHandler(this.Capcha_Click);
                                 Controls.Add(capchabp);
 
                                 Button capchabn = new Button();
@@ -151,35 +151,35 @@ namespace connect4_client
                                 capchabn.Size = new Size(60, 60);
                                 capchabn.Text = "negative";
                                 capchabn.BackColor = Color.Transparent;
-                                capchabn.Click += new System.EventHandler(this.capcha_Click);
+                                capchabn.Click += new System.EventHandler(this.Capcha_Click);
                                 Controls.Add(capchabn);
                             }
                         });
                     }
                     else if (textFromServer == "code done")
                     {
-                        change_outputtext_txt("login completed, starting game...");
-                        chess chessair = new chess(this);
+                        Change_outputtext_txt("login completed, starting game...");
+                        Chess chessair = new Chess(this);
                         chessair.ShowDialog();
                     }
                     else if (textFromServer == "code done - change password")
                     {
-                        change_outputtext_txt("login completed, it's time to change password...");
+                        Change_outputtext_txt("login completed, it's time to change password...");
                         System.Threading.Thread.Sleep(1500);
                         change_password change_password = new change_password(this,"one mounth past, its time to change your password..");
                         change_password.ShowDialog();
                     }
                     else if (textFromServer == "code or captcha incorect")
                     {
-                        change_outputtext_txt("the verefication code is incorrect ");
+                        Change_outputtext_txt("the verefication code is incorrect ");
                     }
                     else if (textFromServer == "coudnt send mail")
                     {
-                        change_outputtext_txt("coudnt send mail to your mail adress");
+                        Change_outputtext_txt("coudnt send mail to your mail adress");
                     }
                     else
                     {
-                        change_outputtext_txt("username or password are incorrect");
+                        Change_outputtext_txt("username or password are incorrect");
                     }
                 }
             }
@@ -189,18 +189,18 @@ namespace connect4_client
             }
         }
 
-        private void registration_Click(object sender, EventArgs e)
+        private void Registration_Click(object sender, EventArgs e)
         {
             register registrationForm = new register(this);
             registrationForm.ShowDialog();
         }
-        public void change_outputtext_txt(string s)
+        public void Change_outputtext_txt(string s)
         {
             outputtext.BeginInvoke((MethodInvoker)delegate () {
                 outputtext.Text = s;
             });
         }
-        private void capcha_Click(object sender, EventArgs e)
+        private void Capcha_Click(object sender, EventArgs e)
         {
             try
             {
@@ -227,7 +227,7 @@ namespace connect4_client
             }
         }
 
-        private void login_Load(object sender, EventArgs e)
+        private void Login_Load(object sender, EventArgs e)
         {
 
         }
