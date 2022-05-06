@@ -48,7 +48,7 @@ namespace chess_air_Server
             }
         }
 
-        public static Boolean not_spufing(string ipAddress)
+        public static Boolean Not_spufing(string ipAddress)
         {
             using (StreamReader r = File.OpenText("log.txt"))
             {
@@ -66,7 +66,7 @@ namespace chess_air_Server
             return true;
         }
 
-        public static string[] get_random_captcha()
+        public static string[] Get_random_captcha()
         {
             //str[0] = the words
             //str[1] = the Sentiment Analysis answer
@@ -103,7 +103,7 @@ namespace chess_air_Server
                                 line = line.Replace("<br /><br />", "     ");
                                 string[] info = line.Split('.');
                                 if (line.Length < 50)// the overall text is less than 50 characters
-                                    return get_random_captcha();
+                                    return Get_random_captcha();
                                 else
                                 {
                                     int charcount = 0;
@@ -111,14 +111,14 @@ namespace chess_air_Server
                                     {
                                         charcount += info[i].Length;
                                         str[0] += info[i] + ".";
-                                        if (charcount > 230)
+                                        if (charcount > 32) //when the captcha should stop getting more letters
                                         {
                                             if (str[0] == null)
                                                 Console.WriteLine("something went wrong - capcha didnt perform well");
                                             return str;
                                         }
                                     }
-                                    return get_random_captcha();
+                                    return Get_random_captcha();
                                 }
                             }
                         }
@@ -129,9 +129,9 @@ namespace chess_air_Server
             }
             catch (Exception)
             {
-                return get_random_captcha();
+                return Get_random_captcha();
             }
-            return get_random_captcha();
+            return Get_random_captcha();
         }
 
     }

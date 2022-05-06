@@ -14,22 +14,31 @@ namespace chessair_client
         private static readonly string ipAddress = "127.0.0.1";
         public static TcpClient client;
         public static byte[] data;
+        public static RSA rsa;
         [STAThread]
         static void Main()
         {
           Application.EnableVisualStyles();
           Application.SetCompatibleTextRenderingDefault(false);
           ///
+
           //Application.Run(new chessair());
           Connect_server();
+          
+          //initialize RSA
+          rsa = new RSA();
+
           Application.Run(new Login());
           //new login().ShowDialog();
           System.Windows.Forms.Application.Exit();
           
+          
         }
 
-        public static void SendMessage(string message)
+        public static void SendMessage(string message,bool incripted=true)
         {
+            if(incripted)
+                message = rsa.Encrypt(message);
             try
             {
                 // send message to the server

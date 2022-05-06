@@ -82,7 +82,7 @@ namespace chessair_client
                     board[i, j].FlatAppearance.BorderColor = board[i, j].BackColor;
                     board[i, j].BackgroundImageLayout = ImageLayout.Center;
                     ///
-                    board[i, j].Click += new System.EventHandler(this.Button_Click);
+                    board[i, j].Click += new System.EventHandler(this.Sq_Button_Click);
                     Controls.Add(board[i, j]);
                 }
             }
@@ -188,7 +188,7 @@ namespace chessair_client
             in_the_middle_of_game = false;
         }
 
-        private void Button_Click(object sender, EventArgs e)
+        private void Sq_Button_Click(object sender, EventArgs e)
         {
             this.ph.Stop_show();
             if (my_turn /*&& g*/) //and check if its one of my peaces
@@ -303,6 +303,7 @@ namespace chessair_client
                 {
                     // invoke the delegate to display the recived data
                     string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
+                    textFromServer = Program.rsa.Decrypt(textFromServer);
                     // what happen after the cliant register - what the server returns and what happen as a result
                     if (textFromServer.StartsWith("###start_game###"))
                     {//my nickname & opponent nickname & my color 

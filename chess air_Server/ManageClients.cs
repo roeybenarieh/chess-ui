@@ -24,6 +24,7 @@ namespace chess_air_Server
         // information about the client
         public TcpClient _client;
         public string _clientIP;
+        private RSA rsa;
         public int client_id; //used in DB
         private String mailcode;
         public Boolean ready_to_play = false;
@@ -32,7 +33,7 @@ namespace chess_air_Server
         public types_of_games.Game game;
 
         // used for sending and reciving data
-        private byte[] data;
+        public byte[] data;
 
         /// When the client gets connected to the server the server will create an instance of the ChatClient and pass the TcpClient
         public ManageClient(TcpClient client)
@@ -47,12 +48,12 @@ namespace chess_air_Server
             // Read data from the client async
             data = new byte[_client.ReceiveBufferSize];
 
-            if (MainProgram.not_spufing(_clientIP))
+            if (MainProgram.Not_spufing(_clientIP))
             {
                 Console.WriteLine("new connection");
                 MainProgram.Log_new_event("new connection", _clientIP);
-
-
+                //initialize RSA
+                this.rsa = new RSA(this);
                 // BeginRead will begin async read from the NetworkStream
                 // This allows the server to remain responsive and continue accepting new connections from other clients
                 // When reading complete control will be transfered to the ReviveMessage() function.
@@ -66,7 +67,7 @@ namespace chess_air_Server
         }
 
         /// allow the server to send message to the client.
-        public void SendMessage(string message) // send message only to the client.
+        public bool SendMessage(string message, bool incripted = true) // send message only to the client.
         {
             try
             {
@@ -80,14 +81,21 @@ namespace chess_air_Server
                     ns = _client.GetStream();
                 }
 
+                if (incripted)
+                {
+                    //message = "heheh";
+                    message = rsa.Encrypt(message);
+                }
                 // Send data to the client
                 byte[] bytesToSend = System.Text.Encoding.ASCII.GetBytes(message);
                 ns.Write(bytesToSend, 0, bytesToSend.Length);
                 ns.Flush();
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                return false;
             }
         }
 
@@ -106,7 +114,8 @@ namespace chess_air_Server
                     bytesRead = _client.GetStream().EndRead(ar);
                 }
                 // if bytesread<1 -> the client disconnected
-                string messageReceived = System.Text.Encoding.ASCII.GetString(data, 0, bytesRead); //the recieved message in string 
+                string messageReceived = System.Text.Encoding.ASCII.GetString(data, 0, bytesRead); //the recieved message in string
+                messageReceived = rsa.Decrypt(messageReceived);
                 if (bytesRead < 1 || messageReceived == "###quit###")
                 {
                     // remove the client from the list of clients
@@ -133,16 +142,18 @@ namespace chess_air_Server
                             this.mailcode = new String(stringChars);
                             if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
                             {
-                                string message = "login done";
+                                SendMessage("login done");
                                 for (int i = 0; i < 3; i++)
                                 {
-                                    string[] tmp = MainProgram.get_random_captcha();
+                                    string[] tmp = MainProgram.Get_random_captcha();
                                     captcha[i] = tmp[1];
                                     if (tmp[0].Equals(""))
                                         Console.WriteLine("there is a problem.. if this breakpoint didnt work for a long time i can delete it");
-                                    message += "%" + tmp[0];
+                                    //message += "%" + tmp[0];
+                                    if (!SendMessage("captcha%" + i + "%" + tmp[0]))
+                                        i--;
+
                                 }
-                                SendMessage(message);
                             }
                             else
                                 SendMessage("coudnt send mail");
@@ -267,7 +278,7 @@ namespace chess_air_Server
                         {
                             if (messageReceived.Equals("###resignation###"))
                             {
-                                this.game.resignationHandler(this);
+                                this.game.ResignationHandler(this);
                             }
                             else if(this.my_turn) //if it is this clients turn
                                 this.game.GameMessageHandler(messageReceived);
@@ -280,7 +291,7 @@ namespace chess_air_Server
                     _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, null);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 AllClients.Remove(_clientIP);
                 Console.WriteLine(this.client_id.ToString() + " has left.");

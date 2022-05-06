@@ -166,7 +166,6 @@
             this.city.Size = new System.Drawing.Size(81, 46);
             this.city.TabIndex = 9;
             this.city.Text = "city";
-            this.city.Click += new System.EventHandler(this.Label2_Click);
             // 
             // country
             // 

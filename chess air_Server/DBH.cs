@@ -124,11 +124,7 @@ namespace chess_air_Server
                 if(position.Equals("bin"))
                 {
                     directory += database_name;
-                    /*if (!String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={0};Integrated Security=True", directory).Equals(
-                        @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C: \Users\roey2\OneDrive\Desktop\chessair\chess air_Server\DB.mdf;Integrated Security=True"))
-                        Console.Write(String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={0};Integrated Security=True", directory));*/
                     return String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={0};Integrated Security=True", directory);
-                    //return @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=C: \Users\roey2\OneDrive\Desktop\chessair\chess air_Server\DB.mdf;Integrated Security=True";
                 }
                 directory += position + "\\";
             }

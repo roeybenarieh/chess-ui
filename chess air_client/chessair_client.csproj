@@ -73,6 +73,7 @@
     <Compile Include="register.Designer.cs">
       <DependentUpon>register.cs</DependentUpon>
     </Compile>
+    <Compile Include="RSA.cs" />
     <EmbeddedResource Include="change password.resx">
       <DependentUpon>change password.cs</DependentUpon>
     </EmbeddedResource>

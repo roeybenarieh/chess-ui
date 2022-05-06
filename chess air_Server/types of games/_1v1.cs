@@ -101,7 +101,7 @@ namespace chess_air_Server
             }
         }
 
-        public override void resignationHandler(ManageClient resigned_client)
+        public override void ResignationHandler(ManageClient resigned_client)
         {
             resigned_client.endgame("you resigned");
             (this.Mclient1.Equals(resigned_client) ? Mclient2 : Mclient1).endgame("you won,\r\nother player resigned");

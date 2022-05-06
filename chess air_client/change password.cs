@@ -58,7 +58,7 @@ namespace chessair_client
                 {
                     // invoke the delegate to display the recived data
                     string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-
+                    textFromServer = Program.rsa.Decrypt(textFromServer);
                     if (textFromServer == "bad password")
                     {
                         Change_sidenote_txt("bad password: too similar to the current password");

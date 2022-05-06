@@ -25,7 +25,7 @@ namespace chess_air_Server.types_of_games
         {
             return;// only implimentation in the inheritate objs.
         }
-        public virtual void resignationHandler(ManageClient resigned_client) // recieve message only from the client
+        public virtual void ResignationHandler(ManageClient resigned_client) // recieve message only from the client
         {
             return;// only implimentation in the inheritate objs.
         }
@@ -91,7 +91,7 @@ namespace chess_air_Server.types_of_games
                     }
                 }
             }
-            return new Move(-1,0);
+            return new Move(-1,-1);
         }
 
         internal int char_to_int(char c) { return c - '0'; }

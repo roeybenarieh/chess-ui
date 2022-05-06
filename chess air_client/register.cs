@@ -69,9 +69,6 @@ namespace chessair_client
                 MessageBox.Show(ex.ToString());
             }
         }
-
-        private void Label2_Click(object sender, EventArgs e){ }
-
         private void ReceiveMessage(IAsyncResult ar)
         {
             try
