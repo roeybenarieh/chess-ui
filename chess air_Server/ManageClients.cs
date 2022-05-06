@@ -94,7 +94,7 @@ namespace chess_air_Server
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                //Console.WriteLine(ex.ToString());
                 return false;
             }
         }
@@ -291,7 +291,7 @@ namespace chess_air_Server
                     _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, null);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 AllClients.Remove(_clientIP);
                 Console.WriteLine(this.client_id.ToString() + " has left.");
