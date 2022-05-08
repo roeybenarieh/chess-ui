@@ -109,51 +109,11 @@ namespace connect4_client
                 {
                     // invoke the delegate to display the recived data
                     string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-                    textFromServer = Program.rsa.Decrypt(textFromServer);
-                    // what happen after the cliant register - what the server returns and what happen as a result
-                    if (textFromServer.Equals("login done"))
-                    {
-                        this.BeginInvoke((MethodInvoker)delegate () {
-                            label2.Visible = false;
-                            pictureBox1.Visible = false;
-                            pictureBox2.Visible = false;
-                            registration.Visible = false;
-                            label1.Visible = false;
-                            username.Visible = false;
-                            password.Text = "";
-                            loginbutton.Text = "verify";
-                            loginbutton.Location = new Point(570, 323);
-                            label3.Text = "recived code:";
-                            //
-                            //string[] capchas = textFromServer.Split('%');
-                            for (int i = 0; i < 3; i++)
-                            {
-                                Button capchabp = new Button();
-                                this.capcha_b[i * 2] = capchabp;
-                                capchabp.Name = Convert.ToString(i * 2);
-                                capchabp.Location = new Point(620, 30 + i * 80);
-                                capchabp.Size = new Size(60, 60);
-                                capchabp.Text = "positive";
-                                capchabp.BackColor = Color.Transparent;
-                                capchabp.Click += new System.EventHandler(this.Capcha_Click);
-                                Controls.Add(capchabp);
-
-                                Button capchabn = new Button();
-                                this.capcha_b[(i * 2) + 1] = capchabn;
-                                capchabn.Name = Convert.ToString((i * 2) + 1);
-                                capchabn.Location = new Point(690, 30 + i * 80);
-                                capchabn.Size = new Size(60, 60);
-                                capchabn.Text = "negative";
-                                capchabn.BackColor = Color.Transparent;
-                                capchabn.Click += new System.EventHandler(this.Capcha_Click);
-                                Controls.Add(capchabn);
-                            }
-                        });
-                    }
-                    else if (textFromServer.StartsWith("captcha%"))
+                    if (textFromServer.StartsWith("captcha%"))
                     {
                         string[] message = textFromServer.Split('%');
-                        this.BeginInvoke((MethodInvoker)delegate () {
+                        this.BeginInvoke((MethodInvoker)delegate ()
+                        {
                             //string[] capchas = textFromServer.Split('%');
                             int i = Int32.Parse(message[1]); //0-2 marking of the captcha
 
@@ -165,37 +125,82 @@ namespace connect4_client
                             Controls.Add(capcha);
                         });
                     }
-                    else if (textFromServer == "code done")
+                    else //incripted message
                     {
-                        Change_outputtext_txt("login completed, starting game...");
-                        Chess chessair = new Chess(this);
-                        chessair.ShowDialog();
+                        textFromServer = Program.rsa.Decrypt(textFromServer);
+                        // what happen after the cliant register - what the server returns and what happen as a result
+                        if (textFromServer.Equals("login done"))
+                        {
+                            this.BeginInvoke((MethodInvoker)delegate ()
+                            {
+                                label2.Visible = false;
+                                pictureBox1.Visible = false;
+                                pictureBox2.Visible = false;
+                                registration.Visible = false;
+                                label1.Visible = false;
+                                username.Visible = false;
+                                password.Text = "";
+                                loginbutton.Text = "verify";
+                                loginbutton.Location = new Point(570, 323);
+                                label3.Text = "recived code:";
+                                //
+                                //string[] capchas = textFromServer.Split('%');
+                                for (int i = 0; i < 3; i++)
+                                {
+                                    Button capchabp = new Button();
+                                    this.capcha_b[i * 2] = capchabp;
+                                    capchabp.Name = Convert.ToString(i * 2);
+                                    capchabp.Location = new Point(620, 30 + i * 80);
+                                    capchabp.Size = new Size(60, 60);
+                                    capchabp.Text = "positive";
+                                    capchabp.BackColor = Color.Transparent;
+                                    capchabp.Click += new System.EventHandler(this.Capcha_Click);
+                                    Controls.Add(capchabp);
+
+                                    Button capchabn = new Button();
+                                    this.capcha_b[(i * 2) + 1] = capchabn;
+                                    capchabn.Name = Convert.ToString((i * 2) + 1);
+                                    capchabn.Location = new Point(690, 30 + i * 80);
+                                    capchabn.Size = new Size(60, 60);
+                                    capchabn.Text = "negative";
+                                    capchabn.BackColor = Color.Transparent;
+                                    capchabn.Click += new System.EventHandler(this.Capcha_Click);
+                                    Controls.Add(capchabn);
+                                }
+                            });
+                        }
+                        else if (textFromServer == "code done")
+                        {
+                            Change_outputtext_txt("login completed, starting game...");
+                            Chess chessair = new Chess(this);
+                            chessair.ShowDialog();
+                        }
+                        else if (textFromServer == "code done - change password")
+                        {
+                            Change_outputtext_txt("login completed, it's time to change password...");
+                            System.Threading.Thread.Sleep(1500);
+                            change_password change_password = new change_password(this, "one mounth past, its time to change your password..");
+                            change_password.ShowDialog();
+                        }
+                        else if (textFromServer == "code or captcha incorect")
+                        {
+                            Change_outputtext_txt("the verefication code is incorrect ");
+                        }
+                        else if (textFromServer == "coudnt send mail")
+                        {
+                            Change_outputtext_txt("coudnt send mail to your mail adress");
+                        }
+                        else
+                        {
+                            Change_outputtext_txt("username or password are incorrect");
+                        }
                     }
-                    else if (textFromServer == "code done - change password")
-                    {
-                        Change_outputtext_txt("login completed, it's time to change password...");
-                        System.Threading.Thread.Sleep(1500);
-                        change_password change_password = new change_password(this,"one mounth past, its time to change your password..");
-                        change_password.ShowDialog();
-                    }
-                    else if (textFromServer == "code or captcha incorect")
-                    {
-                        Change_outputtext_txt("the verefication code is incorrect ");
-                    }
-                    else if (textFromServer == "coudnt send mail")
-                    {
-                        Change_outputtext_txt("coudnt send mail to your mail adress");
-                    }
-                    else
-                    {
-                        Change_outputtext_txt("username or password are incorrect");
-                    }
+                    Program.client.GetStream().BeginRead(Program.data,
+                                                 0,
+                                                 System.Convert.ToInt32(Program.client.ReceiveBufferSize),
+                                                 ReceiveMessage,
+                                                 null);
                 }
-                Program.client.GetStream().BeginRead(Program.data,
-                                             0,
-                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                             ReceiveMessage,
-                                             null);
             }
             catch (Exception e)
             {

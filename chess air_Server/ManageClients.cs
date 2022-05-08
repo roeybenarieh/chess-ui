@@ -11,6 +11,7 @@ using System.Net.Sockets;
 using System.Windows;
 using System.Collections.Generic;
 using chess_air_Server.types_of_games;
+using System.Threading;
 
 namespace chess_air_Server
 {
@@ -147,12 +148,10 @@ namespace chess_air_Server
                                 {
                                     string[] tmp = MainProgram.Get_random_captcha();
                                     captcha[i] = tmp[1];
-                                    if (tmp[0].Equals(""))
-                                        Console.WriteLine("there is a problem.. if this breakpoint didnt work for a long time i can delete it");
                                     //message += "%" + tmp[0];
-                                    if (!SendMessage("captcha%" + i + "%" + tmp[0]))
-                                        i--;
-
+                                    SendMessage("captcha%" + i + "%" + tmp[0], incripted: false);
+                                    Thread.Sleep(100);
+                                    Console.WriteLine(i);
                                 }
                             }
                             else

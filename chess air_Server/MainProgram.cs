@@ -111,10 +111,13 @@ namespace chess_air_Server
                                     {
                                         charcount += info[i].Length;
                                         str[0] += info[i] + ".";
-                                        if (charcount > 32) //when the captcha should stop getting more letters
+                                        if (charcount > 230) //when the captcha should stop getting more letters
                                         {
                                             if (str[0] == null)
+                                            {
                                                 Console.WriteLine("something went wrong - capcha didnt perform well");
+                                                return Get_random_captcha();
+                                            }
                                             return str;
                                         }
                                     }
