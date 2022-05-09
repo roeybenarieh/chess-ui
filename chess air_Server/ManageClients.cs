@@ -36,7 +36,10 @@ namespace chess_air_Server
         // used for sending and reciving data
         public byte[] data;
 
-        /// When the client gets connected to the server the server will create an instance of the ChatClient and pass the TcpClient
+        /// <summary>
+        /// constructor - When the client gets connected to the server the server will create an instance of the ChatClient and pass the TcpClient
+        /// </summary>
+        /// <param name="client"></param>
         public ManageClient(TcpClient client)
         {
             _client = client;
@@ -67,7 +70,12 @@ namespace chess_air_Server
 
         }
 
-        /// allow the server to send message to the client.
+        /// <summary>
+        /// allow the server to send message to the client
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="incripted"></param>
+        /// <returns></returns>
         public bool SendMessage(string message, bool incripted = true) // send message only to the client.
         {
             try
@@ -99,7 +107,7 @@ namespace chess_air_Server
                 return false;
             }
         }
-
+        ///<summary>
         /// recieve and handel incomming streem 
         /// Asynchrom
         /// </summary>
@@ -296,6 +304,10 @@ namespace chess_air_Server
                 Console.WriteLine(this.client_id.ToString() + " has left.");
             }
         }
+        /// <summary>
+        /// send message to the client about why the game is over
+        /// </summary>
+        /// <param name="message"></param>
         public void endgame(string message)
         {
             this.SendMessage("###endgame###"+message);
@@ -313,7 +325,13 @@ namespace chess_air_Server
         {
             my_turn = !my_turn;
         }
-
+        /// <summary>
+        /// send email message to the client
+        /// </summary>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <param name="reciver_mail"></param>
+        /// <returns></returns>
         public Boolean send_email(string subject, string message, string reciver_mail) //return if mail have been sent
         {
             try
@@ -340,6 +358,12 @@ namespace chess_air_Server
             }
         }
 
+        /// <summary>
+        /// compute the difference between two strings
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static int Computediff(string s, string t)
         {
             //LevenshteinDistance - how match characters we need to change in one of the strings to get the second string

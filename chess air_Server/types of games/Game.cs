@@ -16,20 +16,36 @@ namespace chess_air_Server.types_of_games
         internal ManageClient Mclient1;
         internal bool Mclient1white;
 
+        /// <summary>
+        /// switch the first player's turn
+        /// </summary>
         internal void switch_player_turn()
         {
             this.Mclient1.changeturn();
         } //switch the indicator of the player current turn
 
+        /// <summary>
+        /// virtual function to check messages related to the game
+        /// </summary>
+        /// <param name="messageReceived"></param>
         public virtual void GameMessageHandler(string messageReceived) // recieve message only from the client
         {
             return;// only implimentation in the inheritate objs.
         }
+        /// <summary>
+        /// virtual function that handle resignation
+        /// </summary>
+        /// <param name="resigned_client"></param>
         public virtual void ResignationHandler(ManageClient resigned_client) // recieve message only from the client
         {
             return;// only implimentation in the inheritate objs.
         }
 
+        /// <summary>
+        /// save this game to the database
+        /// </summary>
+        /// <param name="white_player_id"></param>
+        /// <param name="black_player_id"></param>
         public void savegame(int white_player_id=-1, int black_player_id=-1)
         {
             string w_player_id = white_player_id.ToString(); string b_player_id = black_player_id.ToString();
@@ -40,6 +56,11 @@ namespace chess_air_Server.types_of_games
             DBH.insert_game(w_player_id, b_player_id, chessboard.Get_all_played_moves(false));
         }
         
+        /// <summary>
+        /// send all the legal moves in X,Y position's piece to the client
+        /// </summary>
+        /// <param name="messageReceived"></param>
+        /// <param name="client"></param>
         internal void send_pot_moves(string messageReceived, ManageClient client)
         {
             messageReceived = messageReceived.Remove(0, 14); 
@@ -60,12 +81,22 @@ namespace chess_air_Server.types_of_games
                 }
             }
         }
-        //send a formated move message to a client
+        /// <summary>
+        /// send a formated move message to a client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="move_messageReceived"></param>
+        /// <param name="edgecase"></param>
         internal void send_move(ManageClient client, string move_messageReceived, int edgecase)
         {
             client.SendMessage(move_messageReceived+"#"+edgecase);//send the white clients that the move has been made
         }
 
+        /// <summary>
+        /// function for checking if the move that the client wants to do is legal
+        /// </summary>
+        /// <param name="messageReceived"></param>
+        /// <returns></returns>
         internal Move find_legal_move(string messageReceived)
         {
             messageReceived = messageReceived.Remove(0, 10);

@@ -30,6 +30,10 @@ namespace chessair_client
         // represent a name of a button that his potential moves are displayed on the board
         List<string> markedmoves = new List<string>();
 
+        /// <summary>
+        /// constructor of the chess board form
+        /// </summary>
+        /// <param name="f"></param>
         public Chess(Form f)
         {
             try
@@ -45,6 +49,11 @@ namespace chessair_client
             this.Shown += Load_board;
         }
 
+        /// <summary>
+        /// create all of the chess board's necesery buttons on the form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Load_board(object sender, EventArgs e) 
         { //create a blank board and show it to the player
             this.my_nickname.Invoke((MethodInvoker)delegate () { this.my_nickname.Location = new Point(boarders_from_window_verticale, boarders_from_window_diagonal + (squeresize * boardsize));});
@@ -103,7 +112,9 @@ namespace chessair_client
             this.ph = new Promotion_hundler(0, this, false);
         }
 
-        //sets all of the peaces in a start chess game position accourding to the player's color
+        /// <summary>
+        /// put all of the peaces in a start chess game position accourding to the client's color
+        /// </summary>
         private void Put_peaces_in_start_position()
         {
             // make the board blank
@@ -165,6 +176,11 @@ namespace chessair_client
 
         }
 
+        /// <summary>
+        /// shows the player that a new game has began and all of the nicknames involved in the game
+        /// </summary>
+        /// <param name="mynick"></param>
+        /// <param name="oppnick"></param>
         private void Start_game_vizualy(string mynick, string oppnick)// chnage the form componnent for the game
         {
             Put_peaces_in_start_position();
@@ -176,6 +192,10 @@ namespace chessair_client
             in_the_middle_of_game = true;
         }
         
+        /// <summary>
+        /// shows the player the game has ended and shows the outcome of it
+        /// </summary>
+        /// <param name="outcome"></param>
         private void End_game_vizualy(String outcome)// chnage the form componnent for the end of the game
         {
             my_turn = false;
@@ -188,6 +208,11 @@ namespace chessair_client
             in_the_middle_of_game = false;
         }
 
+        /// <summary>
+        /// handle what happen when the player click one of the board's squere buttons
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Sq_Button_Click(object sender, EventArgs e)
         {
             this.ph.Stop_show();
@@ -220,12 +245,25 @@ namespace chessair_client
             }
         }
 
+        /// <summary>
+        /// send the server this player whants to resign
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Resign_Click(object sender, EventArgs e)
         {
             if(in_the_middle_of_game)
                 Program.SendMessage("###resignation###");
         }
 
+        /// <summary>
+        /// gets the start and end X,Y cordinates. than format the move and send it to the server
+        /// </summary>
+        /// <param name="start_j"></param>
+        /// <param name="start_i"></param>
+        /// <param name="end_j"></param>
+        /// <param name="end_i"></param>
+        /// <param name="promotion"></param>
         public void Send_move_to_server(int start_j, int start_i, int end_j, int end_i, string promotion =null)
         {
             if(promotion == null)
@@ -239,6 +277,9 @@ namespace chessair_client
                     promotion); //tell the server to make a move
         }
         
+        /// <summary>
+        /// remove any potential moves shown on the board
+        /// </summary>
         private void Remove_all_potmoves()
         {
             foreach (string move in this.markedmoves)
@@ -261,6 +302,12 @@ namespace chessair_client
             this.markedmoves = new List<string>();
         }
 
+        /// <summary>
+        /// checks if a button in X,Y cordinated is the same color of this player
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         private Boolean Button_image_is_my_color(char x, char y)
         {
             //supose to be - '0;
@@ -275,17 +322,30 @@ namespace chessair_client
             return Convert.ToInt32(this.board[xvalue, yvalue].Tag) <6;
         } 
         
+        /// <summary>
+        /// gets a character and return a integer representation of it
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns></returns>
         internal static int Chartoint(char character)
         {
             return character - '0';
         }
+        /// <summary>
+        /// gets a char that represent a collomb and format it to integer from the prospective of white - for the server
+        /// </summary>
+        /// <param name="position_character"></param>
+        /// <returns></returns>
         internal int Chartointposition(char position_character) {
 
             if (this.iswhite) //no need to change the format since the server calculate the positions as white.
                 return Chartoint(position_character);
             return Math.Abs(position_character - '0' - 7);
         }
-
+        /// <summary>
+        /// asynronic function that gets messages from the server
+        /// </summary>
+        /// <param name="ar"></param>
         private void ReceiveMessage(IAsyncResult ar)
         {
             try
@@ -426,11 +486,21 @@ namespace chessair_client
             }
         }
         
+        /// <summary>
+        /// gets a char representation of column and return the integer representation of it
+        /// </summary>
+        /// <param name="j_pos"></param>
+        /// <returns></returns>
         private static char Get_j_pos_as_letter(Char j_pos)
         {
             const string letters = "ABCDEFGH";
             return letters[Chartoint(j_pos)];
         }
+        /// <summary>
+        /// gets a string representation of a move and add new historical button
+        /// </summary>
+        /// <param name="move"></param>
+        /// <param name="edgecase_message"></param>
         private void Add_historical_move(string move, string edgecase_message="")
         {
             string print_in_notation(string move_edgecase, char j_start_pos, char i_start_pos, char j_end_pos, char i_end_pos)
@@ -460,6 +530,11 @@ namespace chessair_client
             });//add new button
             
         }
+        /// <summary>
+        /// brings the board to the board position after the move that is writen on the button has been done
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Histocial_button_Click(object sender, EventArgs e)
         {
             Button button = sender as Button;
@@ -468,6 +543,10 @@ namespace chessair_client
             Set_notation_at_board(button.Tag.ToString());
         }
         private const string no_peace = "15";
+        /// <summary>
+        /// get a string representation of the chess board
+        /// </summary>
+        /// <returns></returns>
         private string Get_notation()
         {
             //notation format: 1,2,3,4,5,6,7,8/9,0,11,12,15,10
@@ -493,6 +572,11 @@ namespace chessair_client
             }
             return notation;
         }
+
+        /// <summary>
+        /// change the chess board according the string representation "notation"
+        /// </summary>
+        /// <param name="notation"></param>
         private void Set_notation_at_board(string notation)
         {
             string[] rows = notation.Split('/');
@@ -515,7 +599,13 @@ namespace chessair_client
                 }
             });
         }
-
+        /// <summary>
+        /// gets initial and final X,Y cordinates and move the piece acordingly on the board
+        /// </summary>
+        /// <param name="in_i"></param>
+        /// <param name="in_j"></param>
+        /// <param name="fn_i"></param>
+        /// <param name="fn_j"></param>
         private void Move_peace(int in_i, int in_j, int fn_i, int fn_j)
         {
             //moving peace to the new position
@@ -524,28 +614,53 @@ namespace chessair_client
             //deleting records of the peace in the old position
             Delete_peace(in_i, in_j);
         }
-        //remove a peace from a button
+
+        /// <summary>
+        /// remove a peace from a button in the X,Y cordinates
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="j"></param>
         private void Delete_peace(int i, int j)
         {
             board[i,j].BackgroundImage = null; board[i,j].Tag = null;
         }
-        //both of these fun add a peace to a button
+        
+        /// <summary>
+        /// add a peace to a button object
+        /// </summary>
+        /// <param name="button"></param>
+        /// <param name="peacenum"></param>
         internal void Add_peace(Button button, int peacenum)
         {
             button.BackgroundImage = imageList1.Images[peacenum];
             button.Tag = peacenum.ToString();
         }
+        /// <summary>
+        /// add a peace to a button in the X,Y cordinates
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="j"></param>
+        /// <param name="peacenum"></param>
         private void Add_peace(int i, int j, int peacenum)
         {
             this.board[i,j].BackgroundImage = imageList1.Images[peacenum];
             this.board[i, j].Tag = peacenum.ToString();
         }
-
+        /// <summary>
+        /// when the form is closing the client close the connection
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Chessair_FormClosing(object sender, FormClosingEventArgs e)
         {
             Program.Disconnect_server();
         }
 
+        /// <summary>
+        /// handle what happen when the player wants to player versus another player
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Play_Click(object sender, EventArgs e)
         {
             if (play_friend.Text == "play vs friend")
@@ -563,7 +678,11 @@ namespace chessair_client
                                                  null);
             }
         }
-
+        /// <summary>
+        /// handle what happen when the player wants to player versus the engine
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Playai_Click(object sender, EventArgs e)
         {
             playai = sender as Button;
@@ -575,10 +694,6 @@ namespace chessair_client
                                              null);
         }
 
-        private void Chess_Load(object sender, EventArgs e)
-        {
-
-        }
 
         public const int Pawn = 0;
         public const int Knight = 1;

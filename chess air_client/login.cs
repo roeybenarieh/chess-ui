@@ -92,6 +92,10 @@ namespace connect4_client
             }
         }
 
+        /// <summary>
+        /// asynronic function that gets messages from the server
+        /// </summary>
+        /// <param name="ar"></param>
         private void ReceiveMessage(IAsyncResult ar)
         {
             try
@@ -209,17 +213,31 @@ namespace connect4_client
             }
         }
 
+        /// <summary>
+        /// shows the registration form to the client
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Registration_Click(object sender, EventArgs e)
         {
             register registrationForm = new register(this);
             registrationForm.ShowDialog();
         }
+        /// <summary>
+        /// change the alert text for this form to the string s
+        /// </summary>
+        /// <param name="s"></param>
         public void Change_outputtext_txt(string s)
         {
             outputtext.BeginInvoke((MethodInvoker)delegate () {
                 outputtext.Text = s;
             });
         }
+        /// <summary>
+        /// handle what happen when the client choose a captcha
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Capcha_Click(object sender, EventArgs e)
         {
             try
@@ -247,9 +265,5 @@ namespace connect4_client
             }
         }
 
-        private void Login_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }

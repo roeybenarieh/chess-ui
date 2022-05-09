@@ -12,6 +12,11 @@ namespace chessair_client
 {
 	public partial class change_password : Form
 	{
+        /// <summary>
+        /// constructor of the change password form
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="reason_for_changing_password"></param>
         public change_password(Form l, string reason_for_changing_password)
         {
             
@@ -21,6 +26,11 @@ namespace chessair_client
             sidenote_txt.Text = reason_for_changing_password;
         }
 
+        /// <summary>
+        /// when the user clicks the change password button, send the new password information to the server
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Changepasswordbutton_Click(object sender, EventArgs e)
         {
             if (username_txt.Text == "")
@@ -41,6 +51,11 @@ namespace chessair_client
                                                  null);
             }
         }
+        
+        /// <summary>
+        /// asynronic function that gets messages from the server
+        /// </summary>
+        /// <param name="ar"></param>
         private void ReceiveMessage(IAsyncResult ar)
         {
             try
@@ -90,6 +105,11 @@ namespace chessair_client
                 // ignor the error... fired when the user loggs off
             }
         }
+        
+        /// <summary>
+        /// invoke the alart lable and put the string s in it
+        /// </summary>
+        /// <param name="s"></param>
         public void Change_sidenote_txt(string s)
         {
             sidenote_txt.BeginInvoke((MethodInvoker)delegate () {

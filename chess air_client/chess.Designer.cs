@@ -138,7 +138,6 @@ namespace chessair_client
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Name = "chess";
             this.Text = "chessair";
-            this.Load += new System.EventHandler(this.Chess_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -16,6 +16,7 @@ namespace chessair_client
         public static byte[] data;
         public static RSA rsa;
         [STAThread]
+        // main function
         static void Main()
         {
           Application.EnableVisualStyles();
@@ -34,7 +35,11 @@ namespace chessair_client
           
           
         }
-
+        /// <summary>
+        /// send a message to server, the message is encrypted if needed
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="incripted"></param>
         public static void SendMessage(string message,bool incripted=true)
         {
             if(incripted)
@@ -55,6 +60,9 @@ namespace chessair_client
             }
         }
 
+        /// <summary>
+        /// create TCP connection with the server
+        /// </summary>
         public static void Connect_server()
         {
             if (client == null)
@@ -65,6 +73,9 @@ namespace chessair_client
             }
         }
         
+        /// <summary>
+        /// stops a runing TCP connection
+        /// </summary>
         public static void Disconnect_server()
         {
             SendMessage("###quit###");

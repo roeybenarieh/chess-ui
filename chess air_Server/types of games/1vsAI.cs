@@ -10,6 +10,10 @@ namespace chess_air_Server.types_of_games
 {
     internal class _1vsAI : types_of_games.Game
     {
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="Mclient1"></param>
         public _1vsAI(ManageClient Mclient1)
         {
             this.Mclient1 = Mclient1;
@@ -30,6 +34,10 @@ namespace chess_air_Server.types_of_games
             Console.WriteLine("new game: " + Mclient1.get_nick() + " VS AI");
         }
 
+        /// <summary>
+        /// function to check messages related to the game
+        /// </summary>
+        /// <param name="messageReceived"></param>
         public override void GameMessageHandler(string messageReceived) // recieve message only from the client
         {
             if (messageReceived.StartsWith("###move###")) //the client propose to make a move
@@ -100,6 +108,10 @@ namespace chess_air_Server.types_of_games
                 Mclient1.endgame("you resigned");
         }
 
+        /// <summary>
+        /// function that handle resignation
+        /// </summary>
+        /// <param name="resigned_client"></param>
         public override void ResignationHandler(ManageClient resigned_client)
         {
             resigned_client.endgame("you resigned");

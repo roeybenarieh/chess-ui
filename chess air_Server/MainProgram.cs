@@ -39,7 +39,11 @@ namespace chess_air_Server
                 ManageClient user = new ManageClient(listener.AcceptTcpClient());
             }
         }
-
+        /// <summary>
+        /// add new even message in the log file
+        /// </summary>
+        /// <param name="logMessage"></param>
+        /// <param name="ipAddress"></param>
         public static void Log_new_event(string logMessage, string ipAddress)
         { //f is thenth of a second
             using (StreamWriter w = File.AppendText("log.txt"))
@@ -48,6 +52,11 @@ namespace chess_air_Server
             }
         }
 
+        /// <summary>
+        /// checking wheter the user is trying to spuf the server
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
         public static Boolean Not_spufing(string ipAddress)
         {
             using (StreamReader r = File.OpenText("log.txt"))
@@ -66,6 +75,10 @@ namespace chess_air_Server
             return true;
         }
 
+        /// <summary>
+        /// gets a random captach text
+        /// </summary>
+        /// <returns></returns>
         public static string[] Get_random_captcha()
         {
             //str[0] = the words

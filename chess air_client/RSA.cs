@@ -14,7 +14,10 @@ namespace connect4_client
         private string other_computer_publicKey;
         private UnicodeEncoding _encoder;
         private RSACryptoServiceProvider _rsa;
-
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        
         public RSA()
         {
             _encoder = new UnicodeEncoding();
@@ -37,6 +40,9 @@ namespace connect4_client
         {
             return this.my_privateKey;
         }
+        /// <summary>
+        /// set PrivateKey
+        /// </summary>
         public void setPrivateKey(string key)
         {
             this.my_privateKey = key;
@@ -49,6 +55,9 @@ namespace connect4_client
         {
             return this.other_computer_publicKey;
         }
+        /// <summary>
+        /// set PublicKey
+        /// </summary>
         public void setPublicKey(string key)
         {
             this.other_computer_publicKey = key;
@@ -57,7 +66,6 @@ namespace connect4_client
         /// decript data by privateKey
         /// </summary>
         /// <param name="data">data to decript</param>
-        /// /// <param name="privateKey">privateKey</param>
         /// <returns>decripted data</returns>
         public string Decrypt(string data)
         {
@@ -77,7 +85,6 @@ namespace connect4_client
         /// Encrypt the data by public key
         /// </summary>
         /// <param name="data">data to encrypt</param>
-        /// <param name="publicKey"></param>
         /// <returns>encripted data</returns>
         public string Encrypt(string data)
         {
@@ -99,7 +106,9 @@ namespace connect4_client
 
             return sb.ToString();
         }
-
+        /// <summary>
+        /// receive message from server
+        /// </summary>
         private void ReceiveMessage(IAsyncResult ar)
         {
             try

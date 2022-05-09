@@ -71,7 +71,6 @@
             this.remail.Name = "remail";
             this.remail.Size = new System.Drawing.Size(173, 30);
             this.remail.TabIndex = 5;
-            this.remail.TextChanged += new System.EventHandler(this.Remail_TextChanged);
             // 
             // rpassword
             // 

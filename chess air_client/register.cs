@@ -15,12 +15,21 @@ namespace chessair_client
     public partial class register : Form
     {
         readonly Form f = null;
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="f"></param>
         public register(Form f)
         {
             f.Hide();
             this.f = f;
             InitializeComponent();
         }
+        /// <summary>
+        /// send all the registration data to the server(if the data is valid)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Regist_Click(object sender, EventArgs e)
         {
             try
@@ -69,6 +78,11 @@ namespace chessair_client
                 MessageBox.Show(ex.ToString());
             }
         }
+
+        /// <summary>
+        /// asynronic function that gets messages from the server
+        /// </summary>
+        /// <param name="ar"></param>
         private void ReceiveMessage(IAsyncResult ar)
         {
             try
@@ -119,20 +133,25 @@ namespace chessair_client
             }
         }
 
+        /// <summary>
+        /// close the form handler - close the TCP connection
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Register_FormClosing(object sender, FormClosingEventArgs e)
         {
             Program.Disconnect_server();
         }
-
+        /// <summary>
+        /// close the form, shows the login form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Back_Click(object sender, EventArgs e)
         {
             Login login = new Login(this);
             login.ShowDialog();
         }
 
-        private void Remail_TextChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }

@@ -17,7 +17,11 @@ namespace chess_air_Server
 
         //username and password are hashed in the database
 
-        //select statements in DB
+        /// <summary>
+        /// check if the username and password are correct
+        /// </summary>
+        /// <param name="username_password"></param>
+        /// <returns></returns>
         public static Boolean login(String[] username_password) //if their is a account with that username and password
         {
             String stm = "select count(username) from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
@@ -29,7 +33,11 @@ namespace chess_air_Server
             if (count == 1) { return true; }
             else { return false; }
         }
-        
+        /// <summary>
+        /// check if the username is already in the database and if so return it's ID
+        /// </summary>
+        /// <param name="username_password"></param>
+        /// <returns></returns>
         public static int get_id(String[] username_password) //get the id for future comunication with the DB- PK!
         {
             String stm = "select Id from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
@@ -41,6 +49,11 @@ namespace chess_air_Server
             return id;
         }
 
+        /// <summary>
+        /// check if the username is already in the database
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         public static Boolean IsUsernameExist(String username) //if their is a username with that name
         {
             String stm = "select count(username) from users where username='" + gethash(username) + "'";
@@ -52,7 +65,11 @@ namespace chess_air_Server
             if (count >= 1) { return true; }
             else { return false; }
         }
-
+        /// <summary>
+        /// gets a player ID and returns it's nickname
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static String get_nickname(int id)
         {
             String stm = "select nickname from users where Id='" + id + "'";
@@ -63,7 +80,12 @@ namespace chess_air_Server
             sqlConnection.Close();
             return nickname;
         }
-
+        
+        /// <summary>
+        /// check if the email is already in the database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static String get_mail(int id)
         {
             String stm = "select mail from users where Id='" + id + "'";
@@ -74,7 +96,11 @@ namespace chess_air_Server
             sqlConnection.Close();
             return mail;
         }
-
+        /// <summary>
+        /// get player's ID and return when was the last time he changed password
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static string get_last_password_change(int id)
         {
             String stm = "select change_password from users where Id='" + id + "'";
@@ -86,17 +112,12 @@ namespace chess_air_Server
             return datetime.ToShortDateString();
         }
 
-        public static void load_games(string player_id)
-        {
-            //string stm = String.Format("insert into Games (wplayerid,bplayerid,moves) values ({0},{1},{2})", white_player_id, black_player_id, game);
-            cmd.Connection = sqlConnection;
-            //cmd.CommandText = stm;
-            sqlConnection.Open();
-            cmd.ExecuteNonQuery();
-            sqlConnection.Close();
-        }
-
-        //update DB
+        /// <summary>
+        /// update a username's password
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="new_password"></param>
+        /// <returns></returns>
         public static Boolean change_password(String username, String new_password)
         {
             String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = getdate() WHERE username = '" + gethash(username) + "'; ";
@@ -110,7 +131,11 @@ namespace chess_air_Server
             return false;
         }
 
-        // backstage opperations
+        /// <summary>
+        /// automaticly finds the local database directory for the connection string
+        /// </summary>
+        /// <param name="database_name"></param>
+        /// <returns></returns>
         private static string get_local_db_Filename(string database_name)
         {
             if (!database_name.EndsWith(".mdf"))
@@ -136,7 +161,11 @@ namespace chess_air_Server
             HashAlgorithm algorithm = SHA512.Create(); ;
             return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
         }
-
+        /// <summary>
+        /// get the hash of a string
+        /// </summary>
+        /// <param name="inputString"></param>
+        /// <returns></returns>
         public static string gethash(string inputString)
         {
             StringBuilder sb = new StringBuilder();
@@ -146,7 +175,11 @@ namespace chess_air_Server
             return sb.ToString();
         }
 
-        // insert statments in DB
+        /// <summary>
+        /// insert new user data to the database
+        /// </summary>
+        /// <param name="client_data"></param>
+        /// <returns></returns>
         public static Boolean InsertNewUser(String client_data) // inserting client data if he doesnt exist already // return if did the action
         {
             String[] usepass = client_data.Split('&');
@@ -177,6 +210,12 @@ namespace chess_air_Server
             return false;
         }
 
+        /// <summary>
+        /// inser new game data to the database
+        /// </summary>
+        /// <param name="white_player_id"></param>
+        /// <param name="black_player_id"></param>
+        /// <param name="game"></param>
         public static void insert_game(string white_player_id, string black_player_id, string game)
         {
             string stm = String.Format("insert into Games (wplayerid,bplayerid,moves) values ({0},{1},'{2}')", white_player_id, black_player_id, game);

@@ -16,6 +16,10 @@ namespace chess
         private RSACryptoServiceProvider _rsa;
         private ManageClient mc;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="mc"></param>
         public RSA(ManageClient mc)
         {
             this.mc = mc;
@@ -101,7 +105,11 @@ namespace chess
 
             return sb.ToString();
         }
-
+        /// <summary>
+        /// recieve and handel incomming streem 
+        /// Asynchrom
+        /// </summary>
+        /// <param name="ar"></param>
         private void ReceiveMessage(IAsyncResult ar)
         {
             int bytesRead;

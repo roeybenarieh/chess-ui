@@ -12,6 +12,11 @@ namespace chess_air_Server
     {
         private ManageClient Mclient2;
 
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="Mclient1"></param>
+        /// <param name="Mclient2"></param>
         public _1v1(ManageClient Mclient1, ManageClient Mclient2)
         {
             this.Mclient1 = Mclient1;
@@ -43,12 +48,19 @@ namespace chess_air_Server
             }
         }
 
+        /// <summary>
+        /// switch the both player's turn
+        /// </summary>
         private void switch_players_turn()
         {
             base.switch_player_turn();
             Mclient2.changeturn();
         } //switch the indicator of the player current turn
 
+        /// <summary>
+        /// function to check messages related to the game
+        /// </summary>
+        /// <param name="messageReceived"></param>
         public override void GameMessageHandler(string messageReceived) // recieve message only from the client
         {
             ManageClient client = client_turn();
@@ -101,6 +113,10 @@ namespace chess_air_Server
             }
         }
 
+        /// <summary>
+        /// function that handle resignation
+        /// </summary>
+        /// <param name="resigned_client"></param>
         public override void ResignationHandler(ManageClient resigned_client)
         {
             resigned_client.endgame("you resigned");

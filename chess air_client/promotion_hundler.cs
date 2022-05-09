@@ -16,6 +16,12 @@ namespace connect4_client
         private readonly int i_cor;
         private static readonly int[] promotion_peaces = {4,3,2,1 };
         //works if black or white
+        /// <summary>
+        /// constructor, create all of the visuals needed for the promotion
+        /// </summary>
+        /// <param name="i_cor"></param>
+        /// <param name="chess"></param>
+        /// <param name="show"></param>
         public Promotion_hundler(int i_cor, Chess chess,bool show)
         {
             int correction = 0;
@@ -48,6 +54,11 @@ namespace connect4_client
             }
         }
 
+        /// <summary>
+        /// send the server the picked promotion piece and stop to show the promotion
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Pick_promotion(object sender, EventArgs e)
         {
             Button button = sender as Button;
@@ -60,6 +71,9 @@ namespace connect4_client
                 button.Name);
             Stop_show();
         }
+        /// <summary>
+        /// stop to show the promotion
+        /// </summary>
         public void Stop_show()
         {
             for (int i = 0; i < this.peace.Length; i++)
