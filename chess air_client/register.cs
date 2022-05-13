@@ -24,7 +24,7 @@ namespace chessair_client
             Program.Close_form(f);
             InitializeComponent();
             if(keep_reading)
-                Program.keep_reading();
+                Program.Keep_reading();
         }
         /// <summary>
         /// send all the registration data to the server(if the data is valid)

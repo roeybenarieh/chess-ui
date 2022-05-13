@@ -20,7 +20,7 @@ namespace chess_air_Server.types_of_games
             this.Mclient1 = Mclient1;
 
             // send all of the initial information so the players coud start playing
-            if (this.rn.Next(1) == 0)
+            if (this.rn.Next(2) == 0)
             {
                 Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + "AI" + "&" + "white");
                 Mclient1.my_turn = true;
@@ -28,9 +28,11 @@ namespace chess_air_Server.types_of_games
             }
             else
             {
-                Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + "AI" + "&" + "black"); 
+                Mclient1.SendMessage("###start_game###" + Mclient1.get_nick() + "&" + "AI" + "&" + "black");
                 Mclient1.my_turn = false;
                 this.Mclient1white = false;
+                AI_make_move();
+                Mclient1.my_turn = true;
             }
             Console.WriteLine("new game: " + Mclient1.get_nick() + " VS AI");
         }
@@ -51,54 +53,10 @@ namespace chess_air_Server.types_of_games
                     Console.WriteLine(this.Mclient1.get_nick() + " VS AI\n" + this.chessboard.ToString());
                     //check if the game ended:
                     //if the new players turn cant move anymore
-                    if (this.chessboard.generator.Generate_all_legal_moves().Count == 0) //the AI cant move at all.
+                    if (!check_if_game_ended("you won")) //the AI cant move at all.
                     {
-                        if (this.chessboard.Current_player_king_in_check()) //checkmate
-                        {
-                            Mclient1.endgame("you won");
-                        }
-                        else //draw
-                        {
-                            Mclient1.endgame("draw");
-                        }
-                        if (Mclient1white)
-                            this.savegame(white_player_id: this.Mclient1.client_id);
-                        else
-                            this.savegame(black_player_id: this.Mclient1.client_id);
-                    }
-                    else //the AI needs to make a move...
-                    {
-                        Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
-                        Move aimove = this.chessboard.generator.Choose_move(depth:4, for_white_player: false);
-                        stopwatch.Stop();
-                        Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} miliseconds, static evaluation: {2}",
-                            aimove.Print_in_notation(),(float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
-
-                        this.chessboard.Manualy_makemove(aimove);
-                        Console.WriteLine(this.chessboard.ToString());
-                        if ((float)stopwatch.ElapsedMilliseconds < 50)//AI took less than 100 miliseconds to make a move
-                            Thread.Sleep(50 - (int)stopwatch.ElapsedMilliseconds);//wait until 100 miliseconds have passed
-                        base.send_move(Mclient1,
-                            "###move###" + Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare)
-                            + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare)
-                            , aimove.edgecase);//send the white clients that the move has been made
-
-                        if(this.chessboard.generator.Generate_all_legal_moves().Count ==0)//the AI won
-                        {
-                            if (this.chessboard.Current_player_king_in_check()) //checkmate
-                            {
-                                Mclient1.endgame("you lost");
-                            }
-                            else //draw
-                            {
-                                Mclient1.endgame("draw");
-                            }
-                            if (Mclient1white)
-                                base.savegame(white_player_id: this.Mclient1.client_id);
-                            else
-                                base.savegame(black_player_id: this.Mclient1.client_id);
-                        }
-
+                        AI_make_move();
+                        check_if_game_ended("you lost");
                     }
                 }
             }
@@ -106,7 +64,7 @@ namespace chess_air_Server.types_of_games
             { //message: ###pot_move###XY
                 send_pot_moves(messageReceived, this.Mclient1);
             }
-            else if(messageReceived.Equals("###resignation###"))
+            else if (messageReceived.Equals("###resignation###"))
                 Mclient1.endgame("you resigned");
         }
 
@@ -119,5 +77,42 @@ namespace chess_air_Server.types_of_games
             resigned_client.endgame("you resigned");
         }
 
+        private void AI_make_move()
+        {
+            Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
+            Move aimove = this.chessboard.generator.Choose_move(depth: 4, for_white_player: !Mclient1white);
+            stopwatch.Stop();
+            Console.WriteLine(this.Mclient1.get_nick() + " VS AI, found a move({0}) in {1} seconds, static evaluation: {2}",
+                aimove.Print_in_notation(), (float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
+            this.chessboard.Manualy_makemove(aimove);
+            Console.WriteLine(this.chessboard.ToString());
+            if ((float)stopwatch.ElapsedMilliseconds < 50)//AI took less than 100 miliseconds to make a move
+                Thread.Sleep(50 - (int)stopwatch.ElapsedMilliseconds);//wait until 100 miliseconds have passed
+            base.send_move(Mclient1,
+                "###move###" + Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare)
+                + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare)
+                , aimove.edgecase);//send the white clients that the move has been made
+
+        }
+        private bool check_if_game_ended(string if_checkmate_message)
+        {
+            if (this.chessboard.generator.Generate_all_legal_moves().Count == 0)//the AI won
+            {
+                if (this.chessboard.Current_player_king_in_check()) //checkmate
+                {
+                    Mclient1.endgame(if_checkmate_message);
+                }
+                else //draw
+                {
+                    Mclient1.endgame("draw");
+                }
+                if (Mclient1white)
+                    base.savegame(white_player_id: this.Mclient1.client_id);
+                else
+                    base.savegame(black_player_id: this.Mclient1.client_id);
+                return true;
+            }
+            return false;
+        }
     }
 }

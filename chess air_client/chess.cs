@@ -41,7 +41,7 @@ namespace chessair_client
 
             InitializeComponent();
             this.Shown += Load_board;
-            Program.keep_reading();
+            Program.Keep_reading();
         }
 
         /// <summary>
@@ -185,8 +185,16 @@ namespace chessair_client
             my_nickname.Invoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
             oponent_nickname.Invoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
             in_the_middle_of_game = true;
+            moves_history.Invoke((MethodInvoker)delegate () {
+                foreach (Control control in moves_history.Controls)
+                {
+                    moves_history.Controls.Remove(control);
+                    control.Dispose();
+                }
+                moves_history.Controls.Clear();
+            });
         }
-        
+
         /// <summary>
         /// shows the player the game has ended and shows the outcome of it
         /// </summary>
@@ -364,7 +372,7 @@ namespace chessair_client
                 textFromServer = textFromServer.Remove(0, 10);
                 Remove_all_potmoves();
                 //come buck to the current board position:
-                moves_history.Invoke((MethodInvoker)delegate () {
+                moves_history.Invoke((MethodInvoker)delegate () { //bring the board to the last played move
                     if (moves_history.Controls.Count != 0)
                     {
                         Control lastmove = moves_history.Controls[moves_history.Controls.Count - 1];

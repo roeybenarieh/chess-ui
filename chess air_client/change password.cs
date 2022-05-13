@@ -23,7 +23,7 @@ namespace chessair_client
             Program.Close_form(f);
             InitializeComponent();
             sidenote_txt.Text = reason_for_changing_password;
-            Program.keep_reading();
+            Program.Keep_reading();
         }
 
         /// <summary>

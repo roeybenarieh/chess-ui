@@ -159,15 +159,13 @@ namespace chess_air_Server
                             this.mailcode = new String(stringChars);
                             if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
                             {
-                                SendMessage("login done");
+                                SendMessage("login done"); Thread.Sleep(50);
                                 for (int i = 0; i < 3; i++)
                                 {
                                     string[] tmp = MainProgram.Get_random_captcha();
                                     captcha[i] = tmp[1];
                                     //message += "%" + tmp[0];
                                     SendMessage("captcha%" + i + "%" + tmp[0], incripted: false);
-                                    Thread.Sleep(50);
-                                    Console.WriteLine(i);
                                 }
                             }
                             else

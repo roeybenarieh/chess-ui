@@ -145,7 +145,7 @@ namespace chessair_client
                     }
 
                 }
-                keep_reading();
+                Keep_reading();
             }
             catch (Exception e)
             {
@@ -153,7 +153,7 @@ namespace chessair_client
             }
         }
 
-        public static void keep_reading()
+        public static void Keep_reading()
         {
             client.GetStream().BeginRead(Program.data,
                                                        0,

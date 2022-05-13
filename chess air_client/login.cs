@@ -21,7 +21,7 @@ namespace connect4_client
             Program.Close_form(f);
             InitializeComponent();
             if (keep_reading)
-                Program.keep_reading();
+                Program.Keep_reading();
         }
         
         private void Login_FormClosing(object sender, FormClosingEventArgs e)
