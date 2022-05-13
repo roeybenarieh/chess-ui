@@ -36,17 +36,12 @@ namespace chessair_client
         /// <param name="f"></param>
         public Chess(Form f)
         {
-            try
-            {
-                f.Hide();
-            }
-            catch (Exception)
-            {
-                f.Invoke((MethodInvoker)delegate () { f.Hide(); });
-            }
+            Program.receive_message_handler = this.ReceiveMessage;
+            Program.Close_form(f);
 
             InitializeComponent();
             this.Shown += Load_board;
+            Program.keep_reading();
         }
 
         /// <summary>
@@ -343,146 +338,118 @@ namespace chessair_client
             return Math.Abs(position_character - '0' - 7);
         }
         /// <summary>
-        /// asynronic function that gets messages from the server
+        /// handle messages from the server
         /// </summary>
         /// <param name="ar"></param>
-        private void ReceiveMessage(IAsyncResult ar)
+        private void ReceiveMessage(string textFromServer)
         {
-            try
-            {
-                int bytesRead;
-
-                // read the data from the server
-                bytesRead = Program.client.GetStream().EndRead(ar);
-
-                if (bytesRead < 1)
+            // what happen after the cliant register - what the server returns and what happen as a result
+            if (textFromServer.StartsWith("###start_game###"))
+            {//my nickname & opponent nickname & my color 
+                textFromServer = textFromServer.Remove(0, 16);
+                String[] gamedata = textFromServer.Split('&');
+                if (gamedata[2] == "white")
                 {
-                    return;
+                    this.iswhite = true; my_turn = true;
                 }
                 else
                 {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-                    textFromServer = Program.rsa.Decrypt(textFromServer);
-                    // what happen after the cliant register - what the server returns and what happen as a result
-                    if (textFromServer.StartsWith("###start_game###"))
-                    {//my nickname & opponent nickname & my color 
-                        textFromServer = textFromServer.Remove(0, 16);
-                        String[] gamedata = textFromServer.Split('&');
-                        if (gamedata[2] == "white")
-                        {
-                            this.iswhite = true; my_turn = true;
-                        }
-                        else
-                        {
-                            this.iswhite =false; my_turn = false;
-                        }
-                            
-                        Start_game_vizualy(gamedata[0], gamedata[1]);
-                    }
-                    else if (textFromServer.StartsWith("###move###"))
-                    {// after ###move## there is X,Y start cordinations and X,Y end cordinations
-                        textFromServer = textFromServer.Remove(0, 10);
-                        Remove_all_potmoves();
-                        //come buck to the current board position:
-                        moves_history.Invoke((MethodInvoker)delegate () {
-                            if (moves_history.Controls.Count != 0)
-                            {
-                                Control lastmove = moves_history.Controls[moves_history.Controls.Count - 1];
-                                Set_notation_at_board(lastmove.Tag.ToString());
-                            }
-                        });
-                        // the [1] is before the [0], just exept it!!
-                        int[] movedata ={ Chartointposition(textFromServer[0]), 
-                            Chartointposition(textFromServer[1]), 
-                            Chartointposition(textFromServer[2]), 
-                            Chartointposition(textFromServer[3])};
-                        Move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);//moving peace to the new position
-                        string[] edgecase = textFromServer.Split('#');
-                        if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
-                        {
-                            string edgecasemassage = "";
-                            if (edgecase[1].Equals(castle.ToString())) //castling
-                            {
-                                if (movedata[3] - movedata[1] == 2)
-                                {  //king side
-                                    Move_peace(movedata[0], 7, movedata[0], iswhite ? 5 : 4);
-                                    edgecasemassage = "0 - 0";
-                                }
-                                else
-                                {
-                                    Move_peace(movedata[0], 0, movedata[0], iswhite ? 3 : 2);
-                                    edgecasemassage = "0-0-0";
-                                }
-                            }
-                            else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
-                            {
-                                Delete_peace(movedata[2]+(iswhite ? 1 : -1), movedata[3]);//delete the captured pawn
-                            }
-                            else //promotion
-                            {
-                                int color = 0;
-                                if (!(this.iswhite ^ this.my_turn))//if only one of the bool is true, otherwise false
-                                    color = 6;
-                                edgecasemassage = "-";
-                                if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
-                                {
-                                    Add_peace(movedata[2], movedata[3], Queen + color);
-                                    edgecasemassage += "q";
-                                }
-                                else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
-                                {
-                                    Add_peace(movedata[2], movedata[3], Rook + color);
-                                    edgecasemassage += "r";
-                                }
-                                else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
-                                {
-                                    Add_peace(movedata[2], movedata[3], Bishop + color);
-                                    edgecasemassage += "b";
-                                }
-                                else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
-                                {
-                                    Add_peace(movedata[2], movedata[3], Knight + color);
-                                    edgecasemassage += "k";
-                                }
-                            }
-                            Add_historical_move(textFromServer, edgecasemassage);//add historical move
-                        }
-                        else
-                            Add_historical_move(textFromServer);//add historical move
-                        this.xymarkedpeace = null;//unmark pot moves of a peace
-                        this.my_turn =! this.my_turn;//change the turn
-                    }
-                    else if (textFromServer.StartsWith("###posmoves###"))
-                    { // a set of all of the posible XY, end cordinations of a move. -in a XY,XY,XY format
-                        textFromServer = textFromServer.Remove(0, 14);
-                        string[] movedata = textFromServer.Split(',');
-                        foreach (string move in movedata)
-                        {
-                            int i = Chartointposition(move[0]);// the [1] is before the [0], just exept it!!
-                            int j = Chartointposition(move[1]);
-                            board[i,j].Invoke((MethodInvoker)delegate ()
-                            {
-                                board[i, j].FlatAppearance.BorderColor = Color.Red;
-                            });
-                            markedmoves.Add(i.ToString() + j.ToString());
-                        }
-                    }
-                    else if (textFromServer.StartsWith("###endgame###"))// the game ended
-                    {
-                        End_game_vizualy(textFromServer);
-                    }
+                    this.iswhite = false; my_turn = false;
                 }
-                Program.client.GetStream().BeginRead(Program.data,
-                                             0,
-                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                             ReceiveMessage,
-                                             null);
+
+                Start_game_vizualy(gamedata[0], gamedata[1]);
             }
-            catch (Exception)
+            else if (textFromServer.StartsWith("###move###"))
+            {// after ###move## there is X,Y start cordinations and X,Y end cordinations
+                textFromServer = textFromServer.Remove(0, 10);
+                Remove_all_potmoves();
+                //come buck to the current board position:
+                moves_history.Invoke((MethodInvoker)delegate () {
+                    if (moves_history.Controls.Count != 0)
+                    {
+                        Control lastmove = moves_history.Controls[moves_history.Controls.Count - 1];
+                        Set_notation_at_board(lastmove.Tag.ToString());
+                    }
+                });
+                // the [1] is before the [0], just exept it!!
+                int[] movedata ={ Chartointposition(textFromServer[0]),
+                            Chartointposition(textFromServer[1]),
+                            Chartointposition(textFromServer[2]),
+                            Chartointposition(textFromServer[3])};
+                Move_peace(movedata[0], movedata[1], movedata[2], movedata[3]);//moving peace to the new position
+                string[] edgecase = textFromServer.Split('#');
+                if (!edgecase[1].Equals(no_edgecase.ToString()))//incase of a edgecase
+                {
+                    string edgecasemassage = "";
+                    if (edgecase[1].Equals(castle.ToString())) //castling
+                    {
+                        if (movedata[3] - movedata[1] == 2)
+                        {  //king side
+                            Move_peace(movedata[0], 7, movedata[0], iswhite ? 5 : 4);
+                            edgecasemassage = "0 - 0";
+                        }
+                        else
+                        {
+                            Move_peace(movedata[0], 0, movedata[0], iswhite ? 3 : 2);
+                            edgecasemassage = "0-0-0";
+                        }
+                    }
+                    else if (edgecase[1].Equals(enpassant.ToString())) //unpasant
+                    {
+                        Delete_peace(movedata[2] + (iswhite ? 1 : -1), movedata[3]);//delete the captured pawn
+                    }
+                    else //promotion
+                    {
+                        int color = 0;
+                        if (!(this.iswhite ^ this.my_turn))//if only one of the bool is true, otherwise false
+                            color = 6;
+                        edgecasemassage = "-";
+                        if (edgecase[1].StartsWith(pawn_promote_to_queen.ToString()))
+                        {
+                            Add_peace(movedata[2], movedata[3], Queen + color);
+                            edgecasemassage += "q";
+                        }
+                        else if (edgecase[1].StartsWith(pawn_promote_to_rook.ToString()))
+                        {
+                            Add_peace(movedata[2], movedata[3], Rook + color);
+                            edgecasemassage += "r";
+                        }
+                        else if (edgecase[1].StartsWith(pawn_promote_to_bishop.ToString()))
+                        {
+                            Add_peace(movedata[2], movedata[3], Bishop + color);
+                            edgecasemassage += "b";
+                        }
+                        else if (edgecase[1].StartsWith(pawn_promote_to_knight.ToString()))
+                        {
+                            Add_peace(movedata[2], movedata[3], Knight + color);
+                            edgecasemassage += "k";
+                        }
+                    }
+                    Add_historical_move(textFromServer, edgecasemassage);//add historical move
+                }
+                else
+                    Add_historical_move(textFromServer);//add historical move
+                this.xymarkedpeace = null;//unmark pot moves of a peace
+                this.my_turn = !this.my_turn;//change the turn
+            }
+            else if (textFromServer.StartsWith("###posmoves###"))
+            { // a set of all of the posible XY, end cordinations of a move. -in a XY,XY,XY format
+                textFromServer = textFromServer.Remove(0, 14);
+                string[] movedata = textFromServer.Split(',');
+                foreach (string move in movedata)
+                {
+                    int i = Chartointposition(move[0]);// the [1] is before the [0], just exept it!!
+                    int j = Chartointposition(move[1]);
+                    board[i, j].Invoke((MethodInvoker)delegate ()
+                    {
+                        board[i, j].FlatAppearance.BorderColor = Color.Red;
+                    });
+                    markedmoves.Add(i.ToString() + j.ToString());
+                }
+            }
+            else if (textFromServer.StartsWith("###endgame###"))// the game ended
             {
-                // ignor the error... fired when the user loggs off
-                MessageBox.Show("problemo");
+                End_game_vizualy(textFromServer);
             }
         }
         
@@ -671,11 +638,6 @@ namespace chessair_client
 
                 //
                 Program.SendMessage("###ready_to_play_vs_friend###");
-                Program.client.GetStream().BeginRead(Program.data,
-                                                 0,
-                                                 System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                 ReceiveMessage,
-                                                 null);
             }
         }
         /// <summary>
@@ -687,11 +649,6 @@ namespace chessair_client
         {
             playai = sender as Button;
             Program.SendMessage("###ready_to_play_vs_ai###");
-            Program.client.GetStream().BeginRead(Program.data,
-                                             0,
-                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                             ReceiveMessage,
-                                             null);
         }
 
 

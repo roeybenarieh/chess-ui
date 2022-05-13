@@ -1,0 +1,14 @@
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\DB.mdf
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\DB_log.ldf
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess air_Server.exe.config
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess air_Server.exe
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess air_Server.pdb
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess.exe
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess.pdb
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\bin\Debug\chess.exe.config
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.csproj.AssemblyReference.cache
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.csproj.SuggestedBindingRedirects.cache
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.csproj.CoreCompileInputs.cache
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.csproj.CopyComplete
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.exe
+C:\Users\roey2\OneDrive\Desktop\chess-ui\chess air_Server\obj\Debug\chess air_Server.pdb

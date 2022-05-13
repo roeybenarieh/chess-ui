@@ -14,26 +14,18 @@ namespace chess
         private string other_computer_publicKey;
         private UnicodeEncoding _encoder;
         private RSACryptoServiceProvider _rsa;
-        private ManageClient mc;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="mc"></param>
-        public RSA(ManageClient mc)
+        public RSA()
         {
-            this.mc = mc;
             _encoder = new UnicodeEncoding();
             _rsa = new RSACryptoServiceProvider(2048);
 
             my_privateKey = _rsa.ToXmlString(true);
             other_computer_publicKey = _rsa.ToXmlString(false);
-            mc.SendMessage("public key:" + GetPublicKey(), incripted: false);
-            mc._client.GetStream().BeginRead(mc.data,
-                                                 0,
-                                                 System.Convert.ToInt32(mc._client.ReceiveBufferSize),
-                                                 ReceiveMessage,
-                                                 null);
         }
         /// <summary>
         /// return PrivateKey
@@ -104,46 +96,6 @@ namespace chess
             }
 
             return sb.ToString();
-        }
-        /// <summary>
-        /// recieve and handel incomming streem 
-        /// Asynchrom
-        /// </summary>
-        /// <param name="ar"></param>
-        private void ReceiveMessage(IAsyncResult ar)
-        {
-            int bytesRead;
-            try
-            {
-                lock (mc._client.GetStream())
-                {
-                    // call EndRead to handle the end of an async read.
-                    bytesRead = mc._client.GetStream().EndRead(ar);
-                }
-                // if bytesread<1 -> the client disconnected
-                string messageReceived = System.Text.Encoding.ASCII.GetString(mc.data, 0, bytesRead); //the recieved message in string 
-
-                if (bytesRead < 1)
-                {
-                    return;
-                }
-                else
-                {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(mc.data, 0, bytesRead);
-
-                    if (textFromServer.StartsWith("public key:"))
-                    {
-                        setPublicKey(textFromServer.Remove(0, 11));
-                        Console.WriteLine("RSA initialized for the new connection");
-                        return;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // ignor the error... fired when the user loggs off
-            }
         }
 
     }

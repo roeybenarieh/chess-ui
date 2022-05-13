@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace chess_air_Server.types_of_games
@@ -58,7 +59,7 @@ namespace chess_air_Server.types_of_games
                         }
                         else //draw
                         {
-                            Mclient1.SendMessage("###endgame###draw");
+                            Mclient1.endgame("draw");
                         }
                         if (Mclient1white)
                             this.savegame(white_player_id: this.Mclient1.client_id);
@@ -75,7 +76,8 @@ namespace chess_air_Server.types_of_games
 
                         this.chessboard.Manualy_makemove(aimove);
                         Console.WriteLine(this.chessboard.ToString());
-
+                        if ((float)stopwatch.ElapsedMilliseconds < 50)//AI took less than 100 miliseconds to make a move
+                            Thread.Sleep(50 - (int)stopwatch.ElapsedMilliseconds);//wait until 100 miliseconds have passed
                         base.send_move(Mclient1,
                             "###move###" + Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare)
                             + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare)
@@ -89,7 +91,7 @@ namespace chess_air_Server.types_of_games
                             }
                             else //draw
                             {
-                                Mclient1.endgame("###endgame###draw");
+                                Mclient1.endgame("draw");
                             }
                             if (Mclient1white)
                                 base.savegame(white_player_id: this.Mclient1.client_id);

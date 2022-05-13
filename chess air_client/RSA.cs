@@ -26,11 +26,6 @@ namespace connect4_client
             my_privateKey = _rsa.ToXmlString(true);
             other_computer_publicKey = _rsa.ToXmlString(false);
             Program.SendMessage("public key:" + GetPublicKey(),incripted:false);
-            Program.client.GetStream().BeginRead(Program.data,
-                                                             0,
-                                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                             ReceiveMessage,
-                                                             null);
         }
         /// <summary>
         /// return PrivateKey
@@ -105,39 +100,6 @@ namespace connect4_client
             }
 
             return sb.ToString();
-        }
-        /// <summary>
-        /// receive message from server
-        /// </summary>
-        private void ReceiveMessage(IAsyncResult ar)
-        {
-            try
-            {
-                int bytesRead;
-
-                // read the data from the server
-                bytesRead = Program.client.GetStream().EndRead(ar);
-
-                if (bytesRead < 1)
-                {
-                    return;
-                }
-                else
-                {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-
-                    if(textFromServer.StartsWith("public key:"))
-                    {
-                        setPublicKey(textFromServer.Remove(0, 11));
-                        return;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // ignor the error... fired when the user loggs off
-            }
         }
 
     }

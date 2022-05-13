@@ -34,7 +34,7 @@ namespace chess_air_Server
         public types_of_games.Game game;
 
         // used for sending and reciving data
-        public byte[] data;
+        private byte[] data;
 
         /// <summary>
         /// constructor - When the client gets connected to the server the server will create an instance of the ChatClient and pass the TcpClient
@@ -56,8 +56,10 @@ namespace chess_air_Server
             {
                 Console.WriteLine("new connection");
                 MainProgram.Log_new_event("new connection", _clientIP);
+
                 //initialize RSA
-                this.rsa = new RSA(this);
+                this.rsa = new RSA();
+
                 // BeginRead will begin async read from the NetworkStream
                 // This allows the server to remain responsive and continue accepting new connections from other clients
                 // When reading complete control will be transfered to the ReviveMessage() function.
@@ -76,8 +78,13 @@ namespace chess_air_Server
         /// <param name="message"></param>
         /// <param name="incripted"></param>
         /// <returns></returns>
-        public bool SendMessage(string message, bool incripted = true) // send message only to the client.
+        public void SendMessage(string message, bool incripted = true) // send message only to the client.
         {
+            if (incripted)
+            {
+                message = rsa.Encrypt(message);
+            }
+            //Thread.Sleep(300);
             try
             {
                 System.Net.Sockets.NetworkStream ns;
@@ -90,21 +97,16 @@ namespace chess_air_Server
                     ns = _client.GetStream();
                 }
 
-                if (incripted)
-                {
-                    //message = "heheh";
-                    message = rsa.Encrypt(message);
-                }
                 // Send data to the client
                 byte[] bytesToSend = System.Text.Encoding.ASCII.GetBytes(message);
+                //Thread.Sleep(100);
                 ns.Write(bytesToSend, 0, bytesToSend.Length);
                 ns.Flush();
-                return true;
             }
             catch (Exception ex)
             {
                 //Console.WriteLine(ex.ToString());
-                return false;
+                return;
             }
         }
         ///<summary>
@@ -124,15 +126,21 @@ namespace chess_air_Server
                 }
                 // if bytesread<1 -> the client disconnected
                 string messageReceived = System.Text.Encoding.ASCII.GetString(data, 0, bytesRead); //the recieved message in string
-                messageReceived = rsa.Decrypt(messageReceived);
                 if (bytesRead < 1 || messageReceived == "###quit###")
                 {
                     // remove the client from the list of clients
                     AllClients.Remove(_clientIP);
                     return;
                 }
+                else if (messageReceived.StartsWith("public key:"))
+                {
+                    rsa.setPublicKey(messageReceived.Remove(0, 11));
+                    Console.WriteLine("RSA initialized at server for the new connection");
+                    SendMessage("public key:" + rsa.GetPublicKey(), incripted: false);
+                }
                 else // client still connected
                 {
+                    //messageReceived = rsa.Decrypt(messageReceived);
                     Console.WriteLine(messageReceived);
                     if (messageReceived.StartsWith("###login###"))// window1- login
                     {
@@ -158,7 +166,7 @@ namespace chess_air_Server
                                     captcha[i] = tmp[1];
                                     //message += "%" + tmp[0];
                                     SendMessage("captcha%" + i + "%" + tmp[0], incripted: false);
-                                    Thread.Sleep(100);
+                                    Thread.Sleep(50);
                                     Console.WriteLine(i);
                                 }
                             }
@@ -310,6 +318,7 @@ namespace chess_air_Server
         /// <param name="message"></param>
         public void endgame(string message)
         {
+            Thread.Sleep(50);//making sure the client is ready to receive the message
             this.SendMessage("###endgame###"+message);
             this.game = null;
         }

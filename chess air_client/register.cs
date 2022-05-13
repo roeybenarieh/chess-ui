@@ -14,16 +14,17 @@ namespace chessair_client
 {
     public partial class register : Form
     {
-        readonly Form f = null;
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="f"></param>
-        public register(Form f)
+        public register(Form f,bool keep_reading =true)
         {
-            f.Hide();
-            this.f = f;
+            Program.receive_message_handler = this.ReceiveMessage;
+            Program.Close_form(f);
             InitializeComponent();
+            if(keep_reading)
+                Program.keep_reading();
         }
         /// <summary>
         /// send all the registration data to the server(if the data is valid)
@@ -46,13 +47,7 @@ namespace chessair_client
                     }
                     else {
                         outputtext.Text = "";
-                        Program.Connect_server();
                         Program.SendMessage("###regist###" + rusername.Text + "&" + rpassword.Text + "&" + rnickname.Text + "&" + remail.Text + "&" + rage.Text + "&" + rcountry.Text + "&" + rcity.Text);
-                        Program.client.GetStream().BeginRead(Program.data,
-                                                         0,
-                                                         System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                         ReceiveMessage,
-                                                         null);
                     }
                 }
                 else{ // מציג מה לא הוכנס
@@ -80,57 +75,30 @@ namespace chessair_client
         }
 
         /// <summary>
-        /// asynronic function that gets messages from the server
+        /// handle messages from the server
         /// </summary>
         /// <param name="ar"></param>
-        private void ReceiveMessage(IAsyncResult ar)
+        private void ReceiveMessage(string textFromServer)
         {
-            try
+            // what happen after the cliant register - what the server returns and what happen as a result
+            if (textFromServer == "regist complited")
             {
-                int bytesRead;
-
-                // read the data from the server
-                bytesRead = Program.client.GetStream().EndRead(ar);
-
-                if (bytesRead < 1)
-                {
-                    return;
-                }
-                else
-                {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-                    // what happen after the cliant register - what the server returns and what happen as a result
-                    String tmp = textFromServer;
-                    if (textFromServer == "regist complited")
-                    {
-                        outputtext.BeginInvoke((MethodInvoker)delegate () {
-                            outputtext.Text = "registration complete!";
-                        });
-                        System.Threading.Thread.Sleep(1000);
-                        f.BeginInvoke((MethodInvoker)delegate () {
-                            this.Hide();
-                            f.ShowDialog();
-                        });
-                        //login login = new login(this);
-                        //login.ShowDialog();
-                    }
-                    else if(textFromServer == "regist mail incorrect")
-                    {
-                        outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = "server couldnt confirm youre mail"; });
-                    }
-                    else if (textFromServer == "username already exist!")
-                    {
-                        outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = textFromServer; });
-                    }
-                    else
-                        outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = textFromServer; });
-                }
+                outputtext.BeginInvoke((MethodInvoker)delegate () {
+                    outputtext.Text = "registration complete!";
+                });
+                System.Threading.Thread.Sleep(1000);
+                Application.Run(new Login(this,false));
             }
-            catch (Exception)
+            else if (textFromServer == "regist mail incorrect")
             {
-                // ignor the error... fired when the user loggs off
+                outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = "server couldnt confirm youre mail"; });
             }
+            else if (textFromServer == "username already exist!")
+            {
+                outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = textFromServer; });
+            }
+            else
+                outputtext.BeginInvoke((MethodInvoker)delegate () { outputtext.Text = textFromServer; });
         }
 
         /// <summary>
@@ -149,7 +117,7 @@ namespace chessair_client
         /// <param name="e"></param>
         private void Back_Click(object sender, EventArgs e)
         {
-            Login login = new Login(this);
+            Login login = new Login(this,false);
             login.ShowDialog();
         }
 

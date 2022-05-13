@@ -15,15 +15,15 @@ namespace chessair_client
         /// <summary>
         /// constructor of the change password form
         /// </summary>
-        /// <param name="l"></param>
+        /// <param name="f"></param>
         /// <param name="reason_for_changing_password"></param>
-        public change_password(Form l, string reason_for_changing_password)
+        public change_password(Form f, string reason_for_changing_password)
         {
-            
-            l.BeginInvoke((MethodInvoker)delegate () { l.Hide(); });
+            Program.receive_message_handler = this.ReceiveMessage;
+            Program.Close_form(f);
             InitializeComponent();
-            Program.Connect_server();
             sidenote_txt.Text = reason_for_changing_password;
+            Program.keep_reading();
         }
 
         /// <summary>
@@ -44,65 +44,33 @@ namespace chessair_client
             else
             {
                 Program.SendMessage("###change_password###" + username_txt.Text + "$" + current_password_txt.Text + "$" + new_password_txt.Text + "$" + new_password2_txt.Text);
-                Program.client.GetStream().BeginRead(Program.data,
-                                                 0,
-                                                 System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                                 ReceiveMessage,
-                                                 null);
             }
         }
         
         /// <summary>
-        /// asynronic function that gets messages from the server
+        /// handle messages from the server
         /// </summary>
         /// <param name="ar"></param>
-        private void ReceiveMessage(IAsyncResult ar)
+        private void ReceiveMessage(string textFromServer)
         {
-            try
+            if (textFromServer == "bad password")
             {
-                int bytesRead;
-
-                // read the data from the server
-                bytesRead = Program.client.GetStream().EndRead(ar);
-
-                if (bytesRead < 1)
-                {
-                    return;
-                }
-                else
-                {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-                    textFromServer = Program.rsa.Decrypt(textFromServer);
-                    if (textFromServer == "bad password")
-                    {
-                        Change_sidenote_txt("bad password: too similar to the current password");
-                    }
-                    else if (textFromServer == "there is a problemo")
-                    {
-                        Change_sidenote_txt("there is a problem, the server wasnt able to change your password. please try again in 5 minutes");
-                    }
-                    else if (textFromServer == "repeated password isn't correct" || textFromServer == "username or current password are incorect!")
-                    {
-                        Change_sidenote_txt(textFromServer);
-                    }//
-                    else if (textFromServer == "password changed")
-                    {
-                        Change_sidenote_txt("password changed, opening the game");
-                        System.Threading.Thread.Sleep(1500);
-                        Chess chessair = new Chess(this);
-                        chessair.ShowDialog();
-                    }
-                }
-                Program.client.GetStream().BeginRead(Program.data,
-                                             0,
-                                             System.Convert.ToInt32(Program.client.ReceiveBufferSize),
-                                             ReceiveMessage,
-                                             null);
+                Change_sidenote_txt("bad password: too similar to the current password");
             }
-            catch (Exception)
+            else if (textFromServer == "there is a problemo")
             {
-                // ignor the error... fired when the user loggs off
+                Change_sidenote_txt("there is a problem, the server wasnt able to change your password. please try again in 5 minutes");
+            }
+            else if (textFromServer == "repeated password isn't correct" || textFromServer == "username or current password are incorect!")
+            {
+                Change_sidenote_txt(textFromServer);
+            }//
+            else if (textFromServer == "password changed")
+            {
+                Change_sidenote_txt("password changed, opening the game");
+                System.Threading.Thread.Sleep(1500);
+                Chess chessair = new Chess(this);
+                chessair.ShowDialog();
             }
         }
         
