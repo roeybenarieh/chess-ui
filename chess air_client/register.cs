@@ -77,7 +77,6 @@ namespace chessair_client
         /// <summary>
         /// handle messages from the server
         /// </summary>
-        /// <param name="ar"></param>
         private void ReceiveMessage(string textFromServer)
         {
             // what happen after the cliant register - what the server returns and what happen as a result

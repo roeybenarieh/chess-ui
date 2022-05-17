@@ -14,7 +14,7 @@ namespace connect4_client
     public partial class Login : Form
     {
         private readonly Button[] capcha_b = new Button[6];
-
+        //constructor
         public Login(Form f = null, bool keep_reading = true)
         {
             Program.receive_message_handler = this.ReceiveMessage;
@@ -28,7 +28,11 @@ namespace connect4_client
         {
             Program.Disconnect_server();
         }
-
+        /// <summary>
+        /// handle what happen when the client click the login button
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Loginbutton_Click(object sender, EventArgs e)
         {
             try
@@ -84,7 +88,7 @@ namespace connect4_client
         }
 
         /// <summary>
-        /// handle messages from the server
+        /// handle string messages from the server
         /// </summary>
         /// <param name="ar"></param>
         private void ReceiveMessage(string textFromServer)

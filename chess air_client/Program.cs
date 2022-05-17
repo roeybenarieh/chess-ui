@@ -110,7 +110,7 @@ namespace chessair_client
         }
 
         /// <summary>
-        /// asynronic function that gets messages from the server
+        /// asynronic function that gets messages from the server, and calls the function that handles the message
         /// </summary>
         /// <param name="ar"></param>
         private static void ReceiveMessage(IAsyncResult ar)
@@ -161,7 +161,10 @@ namespace chessair_client
                                                        ReceiveMessage,
                                                        null);
         }
-
+        /// <summary>
+        /// gets a form object and close it for the client
+        /// </summary>
+        /// <param name="f"></param>
         public static void Close_form(Form f)
         {
             if(f != null)

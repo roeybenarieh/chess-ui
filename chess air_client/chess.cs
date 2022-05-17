@@ -346,7 +346,7 @@ namespace chessair_client
             return Math.Abs(position_character - '0' - 7);
         }
         /// <summary>
-        /// handle messages from the server
+        /// handle string messages from the server
         /// </summary>
         /// <param name="ar"></param>
         private void ReceiveMessage(string textFromServer)

@@ -48,7 +48,7 @@ namespace chessair_client
         }
         
         /// <summary>
-        /// handle messages from the server
+        /// handle string messages from the server
         /// </summary>
         /// <param name="ar"></param>
         private void ReceiveMessage(string textFromServer)
