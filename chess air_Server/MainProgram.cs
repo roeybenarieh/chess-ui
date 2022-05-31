@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace chess_air_Server
@@ -75,6 +76,7 @@ namespace chess_air_Server
             return true;
         }
 
+        private static int[] chosen_txt = { -1, -1 };
         /// <summary>
         /// gets a random captach text
         /// </summary>
@@ -101,6 +103,10 @@ namespace chess_air_Server
             {
                 var txtFiles = Directory.EnumerateFiles(sourceDirectory, "*.txt");
                 int filenum = random.Next(150);//12500 txt files exist, only 300 are used in this project
+                while (filenum == chosen_txt[0] || filenum == chosen_txt[1])
+                {
+                    filenum = random.Next(150);
+                }
                 int count = 0;
                 foreach (string currentFile in txtFiles)
                 {
@@ -113,7 +119,8 @@ namespace chess_air_Server
                             string line;
                             while ((line = r.ReadLine()) != null)
                             {
-                                line = line.Replace("<br /><br />", "     ");
+                                //line = line.Replace("<br /><br />", "     ");
+                                line = Regex.Replace(line, "<.*?>", String.Empty);
                                 string[] info = line.Split('.');
                                 if (line.Length < 50)// the overall text is less than 50 characters
                                     return Get_random_captcha();
@@ -130,6 +137,15 @@ namespace chess_air_Server
                                             {
                                                 Console.WriteLine("something went wrong - capcha didnt perform well");
                                                 return Get_random_captcha();
+                                            }
+                                            if (chosen_txt[0] == -1)
+                                                chosen_txt[0] = filenum;
+                                            else if (chosen_txt[1] == -1)
+                                                chosen_txt[1] = filenum;
+                                            else
+                                            {
+                                                chosen_txt[0] = -1;
+                                                chosen_txt[1] = -1;
                                             }
                                             return str;
                                         }

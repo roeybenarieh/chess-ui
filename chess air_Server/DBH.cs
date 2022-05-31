@@ -24,6 +24,9 @@ namespace chess_air_Server
         /// <returns></returns>
         public static Boolean login(String[] username_password) //if their is a account with that username and password
         {
+            for (int i = 0; i < username_password.Length; i++)
+                if (checkForSQLInjection(username_password[i]))
+                    return false;
             String stm = "select count(username) from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
             cmd.Connection = sqlConnection;
             cmd.CommandText = stm;
@@ -56,6 +59,8 @@ namespace chess_air_Server
         /// <returns></returns>
         public static Boolean IsUsernameExist(String username) //if their is a username with that name
         {
+            if (checkForSQLInjection(username))
+                return false;
             String stm = "select count(username) from users where username='" + gethash(username) + "'";
             cmd.Connection = sqlConnection;
             cmd.CommandText = stm;
@@ -120,6 +125,8 @@ namespace chess_air_Server
         /// <returns></returns>
         public static Boolean change_password(String username, String new_password)
         {
+            if (checkForSQLInjection(username) || checkForSQLInjection(new_password))
+                return false;
             String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = getdate() WHERE username = '" + gethash(username) + "'; ";
             cmd.Connection = sqlConnection;
             cmd.CommandText = stm;
@@ -189,6 +196,8 @@ namespace chess_air_Server
                 usepass[1] = gethash(usepass[1]);
                 for (int i = 0; i < usepass.Length; i++)
                 {
+                    if (checkForSQLInjection(usepass[i]))
+                        return false;
                     if (usepass[i] == "" || usepass[i] == null)
                     {
                         usepass[i] = "null";
@@ -224,6 +233,84 @@ namespace chess_air_Server
             sqlConnection.Open();
             cmd.ExecuteNonQuery();
             sqlConnection.Close();
+        }
+
+        public static Boolean checkForSQLInjection(string userInput)
+        {
+
+            bool isSQLInjection = false;
+
+            string[] sqlCheckList = { "--",
+
+                                       ";--",
+
+                                       ";",
+
+                                       "/*",
+
+                                       "*/",
+
+                                        "@@",
+
+                                        "@",
+
+                                        "char",
+
+                                       "nchar",
+
+                                       "varchar",
+
+                                       "nvarchar",
+
+                                       "alter",
+
+                                       "begin",
+
+                                       "cast",
+
+                                       "create",
+
+                                       "cursor",
+
+                                       "declare",
+
+                                       "delete",
+
+                                       "drop",
+
+                                       "end",
+
+                                       "exec",
+
+                                       "execute",
+
+                                       "fetch",
+
+                                            "insert",
+
+                                          "kill",
+
+                                             "select",
+
+                                           "sys",
+
+                                            "sysobjects",
+
+                                            "syscolumns",
+
+                                           "table",
+
+                                           "update"
+
+                                       };
+
+            string CheckString = userInput.Replace("'", "''");
+
+            for (int i = 0; i <= sqlCheckList.Length - 1; i++)
+                if ((CheckString.IndexOf(sqlCheckList[i], StringComparison.OrdinalIgnoreCase) >= 0))
+                    isSQLInjection = true;
+
+            return isSQLInjection;
         }
     }
 }
