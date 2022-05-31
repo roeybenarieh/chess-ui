@@ -33,14 +33,14 @@ namespace chessair_client
         /// <param name="e"></param>
         private void Changepasswordbutton_Click(object sender, EventArgs e)
         {
-            if (username_txt.Text == "")
-                Change_sidenote_txt("username must be inserted");
-            else if (current_password_txt.Text == "")
-                Change_sidenote_txt("current passworde must be inserted");
-            else if (new_password_txt.Text == "")
-                Change_sidenote_txt("new password must be inserted");
-            else if (new_password2_txt.Text == "")
-                Change_sidenote_txt("you must repead the new password");
+            if (username_txt.Text.Length < 5)
+                Change_sidenote_txt("username must contain at least five characters");
+            else if (current_password_txt.Text.Length < 5)
+                Change_sidenote_txt("current password must contain at least five characters");
+            else if (new_password_txt.Text.Length < 5)
+                Change_sidenote_txt("new password must contain at least five characters");
+            else if (new_password2_txt.Text.Length < 5)
+                Change_sidenote_txt("you must repeat the new password");
             else
             {
                 Program.SendMessage("###change_password###" + username_txt.Text + "$" + current_password_txt.Text + "$" + new_password_txt.Text + "$" + new_password2_txt.Text);

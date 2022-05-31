@@ -205,52 +205,58 @@ namespace chess_air_Server
                         String userdatatmp = messageReceived.Remove(0, 12);
                         String[] userdata = userdatatmp.Split('&');
 
-                        if (!DBH.IsUsernameExist(userdata[0]))
+                        if (userdata[0].Length >4 && userdata[1].Length > 4) //making sure the username and password is in the right length
                         {
-                            if (DBH.InsertNewUser(userdatatmp))
+                            if (!DBH.IsUsernameExist(userdata[0]))
                             {
-                                string message = "your registration completed!";
-                                if (send_email("welcome to chessair", message, userdata[3]))
+                                if (DBH.InsertNewUser(userdatatmp))
                                 {
-                                    SendMessage("regist complited"); //was able to create new user and send comfirmation mail
+                                    string message = "your registration completed!";
+                                    if (send_email("welcome to chessair", message, userdata[3]))
+                                    {
+                                        SendMessage("regist complited"); //was able to create new user and send comfirmation mail
+                                    }
+                                    else
+                                        SendMessage("regist mail incorrect");
                                 }
                                 else
-                                    SendMessage("regist mail incorrect");
+                                {
+                                    SendMessage("there was a problem in the server, please try again later");//coudnt create new user, problem with the database
+                                }
                             }
                             else
                             {
-                                SendMessage("there was a problem in the server, please try again later");//coudnt create new user, problem with the database
+                                SendMessage("username already exist!");
                             }
-                        }
-                        else
-                        {
-                            SendMessage("username already exist!");
                         }
                     }
                     else if (messageReceived.StartsWith("###change_password###"))// window3- change password
                     {
                         String userdatatmp = messageReceived.Remove(0, 21);
                         String[] userdata = userdatatmp.Split('$');
-                        if (DBH.login(userdata))
+                        if (userdata[2].Length >4) //the new password is in the correct length
                         {
-                            if (Computediff(userdata[1], userdata[2]) <= 3)
-                                SendMessage("bad password");
-                            else
+                            if (DBH.login(userdata))
                             {
-                                if (!userdata[2].Equals(userdata[3]))
-                                    SendMessage("repeated password isn't correct");
+                                if (Computediff(userdata[1], userdata[2]) <= 3)
+                                    SendMessage("bad password");
                                 else
                                 {
-                                    if (DBH.change_password(userdata[0], userdata[2]))
-                                        SendMessage("password changed");
+                                    if (!userdata[2].Equals(userdata[3]))
+                                        SendMessage("repeated password isn't correct");
                                     else
-                                        SendMessage("there is a problemo");
+                                    {
+                                        if (DBH.change_password(userdata[0], userdata[2]))
+                                            SendMessage("password changed");
+                                        else
+                                            SendMessage("there is a problemo");
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            SendMessage("username or current password are incorect!");
+                            else
+                            {
+                                SendMessage("username or current password are incorect!");
+                            }
                         }
                     }
                     else // window3- game

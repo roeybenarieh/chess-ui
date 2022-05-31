@@ -37,7 +37,11 @@ namespace chessair_client
             {
                 if (rpassword.Text.Length > 0 && rusername.Text.Length > 0 && remail.Text.Length > 0 && remail.Text.Contains("@")) // אם הכל הוכנס
                 {
-                    if (rpassword.Text.StartsWith("'")|| rpassword.Text.StartsWith("/")|| rusername.Text.StartsWith("'")|| rusername.Text.StartsWith("/"))
+                    if (rusername.Text.Length < 5)
+                        outputtext.Text = "username must contain at least five characters";
+                    else if (rpassword.Text.Length < 5)
+                        outputtext.Text = "password must contain at least five characters";
+                    else if (rpassword.Text.StartsWith("'")|| rpassword.Text.StartsWith("/")|| rusername.Text.StartsWith("'")|| rusername.Text.StartsWith("/"))
                     {
                         outputtext.Text = "you cant put ' or / at the begging of the information";
                     }
