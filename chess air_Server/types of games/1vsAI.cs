@@ -91,7 +91,7 @@ namespace chess_air_Server.types_of_games
             this.chessboard.Manualy_makemove(aimove);
             Console.WriteLine(this.chessboard.ToString());
             if ((float)stopwatch.ElapsedMilliseconds < 250)//AI took less than 100 miliseconds to make a move
-                Thread.Sleep(50 - (int)stopwatch.ElapsedMilliseconds);//wait until 100 miliseconds have passed
+                Thread.Sleep(250);//wait until 100 miliseconds have passed
 
             string move = ""+Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare) 
                 + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare);
