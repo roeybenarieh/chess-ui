@@ -261,7 +261,38 @@ namespace chess_air_Server
                     }
                     else // window3- game
                     {
-                        if (messageReceived == "###ready_to_play_vs_friend###")
+                        if (messageReceived.StartsWith("###getplayedgames###"))
+                        {//gets the last 15 games
+                            messageReceived = messageReceived.Remove(0, 20);
+                            if(! int.TryParse(messageReceived, out int gameswatched))//if there isnt any id number, use id=1
+                            {
+                                gameswatched = 0;
+                            }
+                            //get the 15 latest games from the id (or less ir there arent enough played games
+
+                            string[] gamesinfos = DBH.getgamesinfo(client_id,gameswatched);
+                            foreach (string game in gamesinfos)
+                                if(game != null)
+                                {
+                                    SendMessage("###gamedata###" + game);
+                                    Thread.Sleep(100);
+                                }
+                        }
+                        else if (messageReceived.StartsWith("###getgame###")) //id"
+                        {//gets the last 15 games
+                            messageReceived = messageReceived.Remove(0, 13);
+                            //brodcast the whole new game to the client
+                            string[] game = DBH.getgame(client_id, Int32.Parse(messageReceived));
+                            SendMessage("###start_game###" + DBH.get_nickname(Int32.Parse(game[1])) + "&" + DBH.get_nickname(Int32.Parse(game[2])) + "&" + ((game[1].Equals(client_id.ToString())) ? "white":"black") + "&oldgame");
+                            Thread.Sleep(300);
+                            foreach (string move in game[3].Split('-'))
+                            {//X,Y cordinates of moves
+                                SendMessage("###move###" + move);//remove the ',' from the string
+                                Thread.Sleep(100);
+                            }
+                            
+                        }
+                        else if (messageReceived == "###ready_to_play_vs_friend###")
                         {
                             Boolean search_player = true;
                             if (AllClients.Count > 1)
@@ -289,10 +320,6 @@ namespace chess_air_Server
                             this.ready_to_play = false;
                             this.game = new _1vsAI(this);
                         }
-                        else if (messageReceived.StartsWith("###ai_vs_ai###"))
-                        {
-                            this.ready_to_play = false;
-                        }
                         else if(this.game != null)//in the middle of a game..
                         {
                             if (messageReceived.Equals("###resignation###"))
@@ -310,7 +337,7 @@ namespace chess_air_Server
                     _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, null);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 AllClients.Remove(_clientIP);
                 Console.WriteLine(this.client_id.ToString() + " has left.");

@@ -49,6 +49,7 @@ namespace chess_air_Server.types_of_games
                 if (move.startsquare != -1) //found a ligal move
                 {
                     base.send_move(Mclient1, messageReceived, move.edgecase);//send the white clients that the move has been made
+                    base.moves += messageReceived.Remove(0, 10) + "#" + move.edgecase + "-";
                     this.chessboard.Manualy_makemove(move);
                     Console.WriteLine(this.Mclient1.get_nick() + " VS AI\n" + this.chessboard.ToString());
                     //check if the game ended:
@@ -77,6 +78,9 @@ namespace chess_air_Server.types_of_games
             resigned_client.endgame("you resigned");
         }
 
+        /// <summary>
+        /// choose the ai move and send it to the player
+        /// </summary>
         private void AI_make_move()
         {
             Stopwatch stopwatch = new Stopwatch(); stopwatch.Start();
@@ -86,14 +90,21 @@ namespace chess_air_Server.types_of_games
                 aimove.Print_in_notation(), (float)stopwatch.ElapsedMilliseconds / 1000, this.chessboard.Evaluate());
             this.chessboard.Manualy_makemove(aimove);
             Console.WriteLine(this.chessboard.ToString());
-            if ((float)stopwatch.ElapsedMilliseconds < 100)//AI took less than 100 miliseconds to make a move
+            if ((float)stopwatch.ElapsedMilliseconds < 250)//AI took less than 100 miliseconds to make a move
                 Thread.Sleep(50 - (int)stopwatch.ElapsedMilliseconds);//wait until 100 miliseconds have passed
-            base.send_move(Mclient1,
-                "###move###" + Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare)
-                + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare)
-                , aimove.edgecase);//send the white clients that the move has been made
 
+            string move = ""+Chessboard.Get_i_pos(aimove.startsquare) + Chessboard.Get_j_pos(aimove.startsquare) 
+                + Chessboard.Get_i_pos(aimove.endsquare) + Chessboard.Get_j_pos(aimove.endsquare);
+
+            base.send_move(Mclient1, "###move###" + move, aimove.edgecase);//send the white clients that the move has been made
+            base.moves += move + "#" + aimove.edgecase + "-";
         }
+
+        /// <summary>
+        /// check if game ended and act accordingly
+        /// </summary>
+        /// <param name="if_checkmate_message"></param>
+        /// <returns></returns>
         private bool check_if_game_ended(string if_checkmate_message)
         {
             if (this.chessboard.generator.Generate_all_legal_moves().Count == 0)//the AI won

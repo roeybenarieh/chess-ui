@@ -38,6 +38,9 @@ namespace chessair_client
             this.play_friend = new System.Windows.Forms.Button();
             this.outcome_tx = new System.Windows.Forms.Label();
             this.playai = new System.Windows.Forms.Button();
+            this.historical_games = new System.Windows.Forms.FlowLayoutPanel();
+            this.more_bt = new System.Windows.Forms.Button();
+            this.less_bt = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // imageList1
@@ -90,7 +93,7 @@ namespace chessair_client
             this.play_friend.BackColor = System.Drawing.Color.ForestGreen;
             this.play_friend.Cursor = System.Windows.Forms.Cursors.Hand;
             this.play_friend.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.play_friend.Location = new System.Drawing.Point(8, 151);
+            this.play_friend.Location = new System.Drawing.Point(8, 94);
             this.play_friend.Name = "play_friend";
             this.play_friend.Size = new System.Drawing.Size(262, 120);
             this.play_friend.TabIndex = 2;
@@ -104,7 +107,7 @@ namespace chessair_client
             this.outcome_tx.BackColor = System.Drawing.Color.Transparent;
             this.outcome_tx.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Underline);
             this.outcome_tx.ForeColor = System.Drawing.Color.Green;
-            this.outcome_tx.Location = new System.Drawing.Point(28, 77);
+            this.outcome_tx.Location = new System.Drawing.Point(28, 55);
             this.outcome_tx.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.outcome_tx.Name = "outcome_tx";
             this.outcome_tx.Size = new System.Drawing.Size(0, 31);
@@ -116,7 +119,7 @@ namespace chessair_client
             this.playai.BackColor = System.Drawing.Color.ForestGreen;
             this.playai.Cursor = System.Windows.Forms.Cursors.Hand;
             this.playai.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
-            this.playai.Location = new System.Drawing.Point(8, 284);
+            this.playai.Location = new System.Drawing.Point(8, 223);
             this.playai.Name = "playai";
             this.playai.Size = new System.Drawing.Size(262, 120);
             this.playai.TabIndex = 4;
@@ -124,19 +127,53 @@ namespace chessair_client
             this.playai.UseVisualStyleBackColor = false;
             this.playai.Click += new System.EventHandler(this.Playai_Click);
             // 
-            // chess
+            // historical_games
+            // 
+            this.historical_games.AutoScroll = true;
+            this.historical_games.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.historical_games.Location = new System.Drawing.Point(12, 358);
+            this.historical_games.Name = "historical_games";
+            this.historical_games.Size = new System.Drawing.Size(315, 290);
+            this.historical_games.TabIndex = 5;
+            // 
+            // more_bt
+            // 
+            this.more_bt.BackColor = System.Drawing.Color.ForestGreen;
+            this.more_bt.Location = new System.Drawing.Point(182, 654);
+            this.more_bt.Name = "more_bt";
+            this.more_bt.Size = new System.Drawing.Size(145, 29);
+            this.more_bt.TabIndex = 7;
+            this.more_bt.Text = "more";
+            this.more_bt.UseVisualStyleBackColor = false;
+            this.more_bt.Click += new System.EventHandler(this.more_bt_Click);
+            // 
+            // less_bt
+            // 
+            this.less_bt.BackColor = System.Drawing.Color.ForestGreen;
+            this.less_bt.Location = new System.Drawing.Point(12, 654);
+            this.less_bt.Name = "less_bt";
+            this.less_bt.Size = new System.Drawing.Size(164, 29);
+            this.less_bt.TabIndex = 8;
+            this.less_bt.Text = "less";
+            this.less_bt.UseVisualStyleBackColor = false;
+            this.less_bt.Click += new System.EventHandler(this.less_bt_Click);
+            // 
+            // Chess
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1236, 709);
+            this.Controls.Add(this.less_bt);
+            this.Controls.Add(this.more_bt);
+            this.Controls.Add(this.historical_games);
             this.Controls.Add(this.playai);
             this.Controls.Add(this.outcome_tx);
             this.Controls.Add(this.play_friend);
             this.Controls.Add(this.my_nickname);
             this.Controls.Add(this.oponent_nickname);
             this.Cursor = System.Windows.Forms.Cursors.Default;
-            this.Name = "chess";
+            this.Name = "Chess";
             this.Text = "chessair";
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -150,6 +187,9 @@ namespace chessair_client
         private System.Windows.Forms.Button play_friend;
         private System.Windows.Forms.Label outcome_tx;
         private System.Windows.Forms.Button playai;
+        private System.Windows.Forms.FlowLayoutPanel historical_games;
+        private System.Windows.Forms.Button more_bt;
+        private System.Windows.Forms.Button less_bt;
     }
 }
 

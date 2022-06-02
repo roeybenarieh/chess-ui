@@ -53,6 +53,110 @@ namespace chess_air_Server
         }
 
         /// <summary>
+        /// return a string array of all of the latest 15 games from a specific game id
+        /// </summary>
+        /// <param name="client_id"></param>
+        /// <param name="first_game_id"></param>
+        internal static string[] getgamesinfo(int client_id, int gameswatched)
+        {
+            //retrieve the SQL Server instance version
+            string stm = @"select * from Games where wplayerid = " + client_id + " or bplayerid = " + client_id + " ORDER BY game_id DESC";
+            
+            cmd.CommandText = stm;
+
+            //open connection
+            sqlConnection.Open();
+
+            //execute the SQLCommand
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            string[][] tmp = new string[15][];//15 games, for each one 3 peaces of information
+            for (int i = 0; i < tmp.Length; i++)
+            {
+                tmp[i] = new string[4];
+
+            }
+            //check if there are records
+            if (dr.HasRows)
+            {
+                int count = 0;
+                while (count != gameswatched && dr.Read())//getting red of the unwanted games
+                {
+                    count++;
+                }
+                count = 0;
+                while (count != 15 && dr.Read())//reading the wanted games
+                {
+                    int gameid = dr.GetInt32(0);
+                    var gamedate = dr.GetDateTime(1);
+                    int wplayerid = dr.GetInt32(2);
+                    int bplayerid = dr.GetInt32(3);
+
+                    tmp[count][0] = gamedate.ToString();
+                    tmp[count][1] = wplayerid.ToString();
+                    tmp[count][2] = bplayerid.ToString();
+                    tmp[count][3] = gameid.ToString();
+
+                    count++;
+                }
+            }
+
+            //close data reader
+            dr.Close();
+
+            //close connection
+            sqlConnection.Close();
+
+            string[] result = new string[15];
+            for(int i=0; i < tmp.Length; i++)
+            {
+                if(tmp[i][0] != null)
+                    result[i] = tmp[i][3] + "$" + get_nickname(Int32.Parse(tmp[i][1])) + " VS " + get_nickname(Int32.Parse(tmp[i][2])) + " AT " + tmp[i][0];
+
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// gets a game information according to its id
+        /// </summary>
+        /// <param name="client_id"></param>
+        /// <param name="gameid"></param>
+        /// <returns></returns>
+        public static string[] getgame(int client_id, int gameid)
+        {
+            String stm = @"select date_time, wplayerid, bplayerid, moves from Games where game_id=" + gameid+ " AND (wplayerid=" + client_id + " OR bplayerid=" + client_id + ")";
+            cmd.CommandText = stm;
+
+            //open connection
+            sqlConnection.Open();
+
+            //execute the SQLCommand
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            string[] result = new string[4];
+            //check if there are records
+            if (dr.HasRows)
+            {
+                while (dr.Read())
+                {
+                    result[0]= dr.GetDateTime(0).ToString();//var gamedate 
+                    result[1] = dr.GetInt32(1).ToString();  //int wplayerid
+                    result[2] = dr.GetInt32(2).ToString();  //int bplayerid
+                    result[3]= dr.GetString(3);             //string moves
+                }
+            }
+
+            //close data reader
+            dr.Close();
+
+            //close connection
+            sqlConnection.Close();
+
+            return result;
+        }
+
+        /// <summary>
         /// check if the username is already in the database
         /// </summary>
         /// <param name="username"></param>
@@ -77,6 +181,8 @@ namespace chess_air_Server
         /// <returns></returns>
         public static String get_nickname(int id)
         {
+            if (id == -1)
+                return "AI";
             String stm = "select nickname from users where Id='" + id + "'";
             cmd.Connection = sqlConnection;
             cmd.CommandText = stm;
@@ -234,7 +340,11 @@ namespace chess_air_Server
             cmd.ExecuteNonQuery();
             sqlConnection.Close();
         }
-
+        /// <summary>
+        /// gets a string and check if it contain sql saved statments, if so it might can be sql injection
+        /// </summary>
+        /// <param name="userInput"></param>
+        /// <returns></returns>
         public static Boolean checkForSQLInjection(string userInput)
         {
 

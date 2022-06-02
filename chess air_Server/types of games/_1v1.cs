@@ -71,6 +71,7 @@ namespace chess_air_Server
                 {
                     base.send_move(Mclient1, messageReceived, move.edgecase);//send the white clients that the move has been made
                     base.send_move(Mclient2, messageReceived, move.edgecase);//send the white clients that the move has been made
+                    base.moves += messageReceived.Remove(0, 10) + "#" + move.edgecase + "-";
                     this.chessboard.Manualy_makemove(move);
                     this.switch_players_turn();
                     Console.WriteLine(this.Mclient1.get_nick() + " VS " + this.Mclient2.get_nick() + "\n" + this.chessboard.ToString());

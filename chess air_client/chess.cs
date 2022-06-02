@@ -22,6 +22,7 @@ namespace chessair_client
         private Button[,] board;
         internal FlowLayoutPanel moves_history;
         internal Promotion_hundler ph;
+        internal int viewed_games = 0;
         internal Boolean in_the_middle_of_game = false;
         internal Boolean my_turn =false;
         internal Boolean iswhite = true;
@@ -41,6 +42,7 @@ namespace chessair_client
 
             InitializeComponent();
             this.Shown += Load_board;
+            Program.SendMessage("###getplayedgames###0");
             Program.Keep_reading();
         }
 
@@ -73,7 +75,6 @@ namespace chessair_client
                 {
                     board[i,j] = new Button();
                     board[i, j].Name = i + "," + j;
-                    board[i, j].Text = i + "," + j;
                     board[i, j].Location = new Point(squeresize * j + boarders_from_window_verticale , squeresize * i + boarders_from_window_diagonal);
                     board[i, j].Size = new Size(squeresize, squeresize);
                     board[i, j].FlatStyle = FlatStyle.Flat;
@@ -97,7 +98,6 @@ namespace chessair_client
             this.moves_history.AutoScroll = true;
             this.moves_history.BackColor = Color.White;
             this.moves_history.FlowDirection = FlowDirection.LeftToRight;
-            this.moves_history.AutoScroll = true;
             this.moves_history.WrapContents = true;
             //this.moves_history.AutoSize = false;
             this.moves_history.Margin = new Padding(0, 0, 0, 0);
@@ -176,15 +176,18 @@ namespace chessair_client
         /// </summary>
         /// <param name="mynick"></param>
         /// <param name="oppnick"></param>
-        private void Start_game_vizualy(string mynick, string oppnick)// chnage the form componnent for the game
+        private void Start_game_vizualy(string mynick, string oppnick,bool viewing_old_game)// chnage the form componnent for the game
         {
             Put_peaces_in_start_position();
             outcome_tx.Invoke((MethodInvoker)delegate () { outcome_tx.Text = "";                                     });
-            play_friend.Invoke((MethodInvoker)delegate ()       { play_friend.Visible = false;                                     });
-            playai.Invoke((MethodInvoker)delegate () { playai.Visible = false; });
+            if (!viewing_old_game)
+            {
+                play_friend.Invoke((MethodInvoker)delegate () { play_friend.Visible = false; });
+                playai.Invoke((MethodInvoker)delegate () { playai.Visible = false; });
+                in_the_middle_of_game = true;
+            }
             my_nickname.Invoke((MethodInvoker)delegate ()         { my_nickname.Text = mynick; this.my_nickname.Visible = true;                 });
             oponent_nickname.Invoke((MethodInvoker)delegate ()    { oponent_nickname.Text = oppnick; this.oponent_nickname.Visible = true; });
-            in_the_middle_of_game = true;
             moves_history.Invoke((MethodInvoker)delegate () {
                 foreach (Control control in moves_history.Controls)
                 {
@@ -209,6 +212,8 @@ namespace chessair_client
             outcome = outcome.Remove(0,13);
             this.outcome_tx.Invoke((MethodInvoker)delegate () { this.outcome_tx.Text = outcome+"!"; });
             in_the_middle_of_game = false;
+            removehistoricalgames();
+            Program.SendMessage("###getplayedgames###" + viewed_games);
         }
 
         /// <summary>
@@ -354,7 +359,33 @@ namespace chessair_client
             try
             {
                 // what happen after the cliant register - what the server returns and what happen as a result
-                if (textFromServer.StartsWith("###start_game###"))
+                if (textFromServer.StartsWith("###gamedata###")) //###gamedata###35$roey1 VS roey1 AT 02/06/2022 09:57:22
+                {
+                    textFromServer = textFromServer.Remove(0, 14);
+                    string[] id_info = textFromServer.Split('$');
+
+                    void view_historical_game(object sender, EventArgs e)
+                    {
+                        if (!this.in_the_middle_of_game)
+                        {
+                            Button button = sender as Button;
+                            Program.SendMessage("###getgame###" + button.Tag.ToString());//username$date time
+                        }
+                    }
+
+                    historical_games.Invoke((MethodInvoker)delegate () {
+                        Button b = new Button
+                        {
+                            ForeColor = Color.Green,
+                            Text = id_info[1],
+                            AutoSize = true
+                        };
+                        b.Tag = id_info[0];
+                        b.Click += new EventHandler(view_historical_game);
+                        historical_games.Controls.Add(b);
+                    });
+                }
+                else if (textFromServer.StartsWith("###start_game###"))
                 {//my nickname & opponent nickname & my color 
                     textFromServer = textFromServer.Remove(0, 16);
                     String[] gamedata = textFromServer.Split('&');
@@ -367,7 +398,7 @@ namespace chessair_client
                         this.iswhite = false; my_turn = false;
                     }
 
-                    Start_game_vizualy(gamedata[0], gamedata[1]);
+                    Start_game_vizualy(gamedata[0], gamedata[1],gamedata.Length==4);
                 }
                 else if (textFromServer.StartsWith("###move###"))
                 {// after ###move## there is X,Y start cordinations and X,Y end cordinations
@@ -382,7 +413,6 @@ namespace chessair_client
                             Set_notation_at_board(lastmove.Tag.ToString());
                         }
                     });
-                    // the [1] is before the [0], just exept it!!
                     int[] movedata ={ Chartointposition(textFromServer[0]),
                             Chartointposition(textFromServer[1]),
                             Chartointposition(textFromServer[2]),
@@ -683,6 +713,36 @@ namespace chessair_client
         public const int pawn_promote_to_queen = 4;
         public const int castle = 5;
         public const int enpassant = 9;
-        //
+
+        private void more_bt_Click(object sender, EventArgs e)
+        {
+            if(this.historical_games.Controls.Count >= 14)
+            {
+                viewed_games += 15;
+                removehistoricalgames();
+                Program.SendMessage("###getplayedgames###"+viewed_games);
+            }
+        }
+
+        private void less_bt_Click(object sender, EventArgs e)
+        {
+            if (viewed_games >=15)
+            {
+                viewed_games -= 15;
+                removehistoricalgames();
+                Program.SendMessage("###getplayedgames###" + viewed_games);
+            }
+        }
+        private void removehistoricalgames()
+        {
+            historical_games.Invoke((MethodInvoker)delegate () {
+                foreach (Control control in historical_games.Controls)
+                {
+                    historical_games.Controls.Remove(control);
+                    control.Dispose();
+                }
+                historical_games.Controls.Clear();
+            });
+        }
     }
 }

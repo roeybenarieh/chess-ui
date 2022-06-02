@@ -12,6 +12,7 @@ namespace chess_air_Server.types_of_games
         internal Random rn = new Random();
         internal Chessboard chessboard = new Chessboard();
         public List<Move> potmoves = new List<Move>();
+        public string moves ="";
 
         internal ManageClient Mclient1;
         internal bool Mclient1white;
@@ -48,12 +49,11 @@ namespace chess_air_Server.types_of_games
         /// <param name="black_player_id"></param>
         public void savegame(int white_player_id=-1, int black_player_id=-1)
         {
-            string w_player_id = white_player_id.ToString(); string b_player_id = black_player_id.ToString();
-            if (black_player_id == -1)
-                b_player_id = "null";
-            if(white_player_id == -1)
-                w_player_id = "null";
-            DBH.insert_game(w_player_id, b_player_id, chessboard.Get_all_played_moves(false));
+            if (!moves.Equals(""))
+            {
+                string w_player_id = white_player_id.ToString(); string b_player_id = black_player_id.ToString();
+                DBH.insert_game(w_player_id, b_player_id, moves.Remove(moves.Length - 1));
+            }
         }
         
         /// <summary>
