@@ -152,17 +152,20 @@ namespace connect4_client
             else if (textFromServer == "code done")
             {
                 Change_outputtext_txt("login completed, starting game...");
-                Application.Run(new Chess(this));
-                //Chess chessair = new Chess(this);
-                //chessair.ShowDialog();
-
+                this.BeginInvoke((MethodInvoker)delegate ()
+                {
+                    Application.Run(new Chess(this));
+                });
             }
             else if (textFromServer == "code done - change password")
             {
                 Change_outputtext_txt("login completed, it's time to change password...");
-                System.Threading.Thread.Sleep(1500);
-                change_password change_password = new change_password(this, "one mounth past, its time to change your password..");
-                change_password.ShowDialog();
+                this.BeginInvoke((MethodInvoker)delegate ()
+                {
+                    System.Threading.Thread.Sleep(1500);
+                    change_password change_password = new change_password(this, "one mounth past, its time to change your password..");
+                    change_password.ShowDialog();
+                });
             }
             else if (textFromServer == "code or captcha incorect")
             {

@@ -86,11 +86,11 @@ namespace chessair_client
             // what happen after the cliant register - what the server returns and what happen as a result
             if (textFromServer == "regist complited")
             {
-                outputtext.BeginInvoke((MethodInvoker)delegate () {
+                this.BeginInvoke((MethodInvoker)delegate () {
                     outputtext.Text = "registration complete!";
+                    System.Threading.Thread.Sleep(1000);
+                    Application.Run(new Login(this, false));
                 });
-                System.Threading.Thread.Sleep(1000);
-                Application.Run(new Login(this,false));
             }
             else if (textFromServer == "regist mail incorrect")
             {

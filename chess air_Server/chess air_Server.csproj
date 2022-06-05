@@ -92,7 +92,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\chess-c-\chess\chess.csproj">
+    <ProjectReference Include="..\chess-engine\chess\chess.csproj">
       <Project>{90b5c179-a2d9-4439-bc00-de96fdfe7168}</Project>
       <Name>chess</Name>
     </ProjectReference>

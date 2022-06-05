@@ -1,0 +1,4 @@
+.env
+.serena/
+chess air_client/bin/Release/
+chess air_client/obj/Release/

@@ -10,7 +10,7 @@ namespace chess_air_Server
 {
     class DBH
     {
-        private static String connectionString = get_local_db_Filename("DB.mdf");
+        private static String connectionString = build_connection_string();
         private static SqlConnection sqlConnection = new SqlConnection(connectionString);
         private static SqlCommand cmd = new SqlCommand();
         private static SHA512 shaM = new SHA512Managed();
@@ -245,28 +245,19 @@ namespace chess_air_Server
         }
 
         /// <summary>
-        /// automaticly finds the local database directory for the connection string
+        /// builds the SQL Server connection string from environment variables
         /// </summary>
-        /// <param name="database_name"></param>
         /// <returns></returns>
-        private static string get_local_db_Filename(string database_name)
+        private static string build_connection_string()
         {
-            if (!database_name.EndsWith(".mdf"))
-                database_name += ".mdf";
-            //
-            string directory ="";
-            // System.IO.Directory.GetCurrentDirectory() == C:\Users\roey2\OneDrive\Desktop\chessair\chess air_Server\bin\Debug
-            string[] positions = System.IO.Directory.GetCurrentDirectory().Split('\\');
-            foreach(string position in positions)
-            {
-                if(position.Equals("bin"))
-                {
-                    directory += database_name;
-                    return String.Format(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={0};Integrated Security=True", directory);
-                }
-                directory += position + "\\";
-            }
-            return "something went wrong";
+            string host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+            string port = Environment.GetEnvironmentVariable("DB_PORT") ?? "1433";
+            string name = Environment.GetEnvironmentVariable("DB_NAME") ?? "ChessDB";
+            string user = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
+            string password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
+            return String.Format(
+                "Server=tcp:{0},{1};Database={2};User Id={3};Password={4};TrustServerCertificate=True;",
+                host, port, name, user, password);
         }
 
         private static byte[] GetHashbytes(string inputString)

@@ -97,8 +97,8 @@ namespace chessair_client
             this.moves_history.Size = new Size(this.Size.Width - this.moves_history.Location.X - 30, squeresize * boardsize);
             this.moves_history.AutoScroll = true;
             this.moves_history.BackColor = Color.White;
-            this.moves_history.FlowDirection = FlowDirection.LeftToRight;
-            this.moves_history.WrapContents = true;
+            this.moves_history.FlowDirection = FlowDirection.TopDown;
+            this.moves_history.WrapContents = false;
             //this.moves_history.AutoSize = false;
             this.moves_history.Margin = new Padding(0, 0, 0, 0);
             this.moves_history.AutoScrollMargin = new Size(5, 0);
@@ -407,11 +407,9 @@ namespace chessair_client
                     //come buck to the current board position:
                     moves_history.Invoke((MethodInvoker)delegate ()
                     { //bring the board to the last played move
-                        if (moves_history.Controls.Count != 0)
-                        {
-                            Control lastmove = moves_history.Controls[moves_history.Controls.Count - 1];
+                        Button lastmove = GetLastMoveButton();
+                        if (lastmove != null)
                             Set_notation_at_board(lastmove.Tag.ToString());
-                        }
                     });
                     int[] movedata ={ Chartointposition(textFromServer[0]),
                             Chartointposition(textFromServer[1]),
@@ -527,7 +525,6 @@ namespace chessair_client
             {
                 Text = print_in_notation(edgecase_message, move[1], move[0], move[3], move[2]),
                 Font = new Font("Microsoft Sans Serif", (squeresize / 5)),
-                Size = new Size(this.moves_history.Width / 2, squeresize), //-10
                 Margin = new Padding(0, 0, 0, 0),
                 BackColor = (my_turn == iswhite) ? Color.White : Color.Black,
                 ForeColor = (my_turn == iswhite) ? Color.Black : Color.White,
@@ -537,11 +534,44 @@ namespace chessair_client
             b.FlatAppearance.BorderColor = b.BackColor;
             b.Tag = Get_notation();
             b.Click += new System.EventHandler(this.Histocial_button_Click);
-            moves_history.Invoke((MethodInvoker)delegate () { moves_history.Controls.Add(b);
-                Control control = moves_history.Controls[moves_history.Controls.Count - 1];
-                moves_history.ScrollControlIntoView(control);//scroll to the new button
+            moves_history.Invoke((MethodInvoker)delegate ()
+            {
+                // each row holds exactly one white move and the black move that follows it
+                Panel row = GetLastMoveRow();
+                if (row == null || row.Controls.Count >= 2)
+                {
+                    row = new Panel()
+                    {
+                        Size = new Size(moves_history.ClientSize.Width, squeresize),
+                        Margin = new Padding(0, 0, 0, 0)
+                    };
+                    moves_history.Controls.Add(row);
+                }
+                b.Size = new Size(row.Width / 2, squeresize);
+                b.Location = new Point(row.Controls.Count == 0 ? 0 : row.Width / 2, 0);
+                row.Controls.Add(b);
+                moves_history.ScrollControlIntoView(row);//scroll to the new move's row
             });//add new button
-            
+
+        }
+        /// <summary>
+        /// the row (white move + black move pair) most recently added to the move history, or null if empty
+        /// </summary>
+        private Panel GetLastMoveRow()
+        {
+            if (moves_history.Controls.Count == 0)
+                return null;
+            return moves_history.Controls[moves_history.Controls.Count - 1] as Panel;
+        }
+        /// <summary>
+        /// the last move button added to the move history, or null if no moves were played yet
+        /// </summary>
+        private Button GetLastMoveButton()
+        {
+            Panel lastRow = GetLastMoveRow();
+            if (lastRow == null || lastRow.Controls.Count == 0)
+                return null;
+            return lastRow.Controls[lastRow.Controls.Count - 1] as Button;
         }
         /// <summary>
         /// brings the board to the board position after the move that is writen on the button has been done

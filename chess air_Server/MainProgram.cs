@@ -12,8 +12,8 @@ namespace chess_air_Server
 {
     internal class MainProgram
     {
-        private const int portNo = 500;
-        private const string ipAddress = "127.0.0.1";//127.0.0.1 for debugging purposes
+        private static readonly int portNo = int.Parse(Environment.GetEnvironmentVariable("SERVER_PORT") ?? "500");
+        private static readonly string ipAddress = Environment.GetEnvironmentVariable("SERVER_LISTEN_IP") ?? "0.0.0.0";
 
 
         public static void Main(string[] args)
@@ -60,6 +60,8 @@ namespace chess_air_Server
         /// <returns></returns>
         public static Boolean Not_spufing(string ipAddress)
         {
+            if (!File.Exists("log.txt"))
+                return true;
             using (StreamReader r = File.OpenText("log.txt"))
             {
                 string current_time = DateTime.Now.ToString("dd/MM/yyyy :: HH:mm:ss.f");
@@ -90,12 +92,12 @@ namespace chess_air_Server
             string sourceDirectory;
             if (random.Next(2) == 0)
             {//half a chace to be positive and half a chance to be negative
-                sourceDirectory = System.IO.Directory.GetCurrentDirectory() + "\\captcha\\pos";
+                sourceDirectory = Path.Combine(Directory.GetCurrentDirectory(), "captcha", "pos");
                 str[1] = "pos";
             }
             else
             {
-                sourceDirectory = System.IO.Directory.GetCurrentDirectory() + "\\captcha\\neg";
+                sourceDirectory = Path.Combine(Directory.GetCurrentDirectory(), "captcha", "neg");
                 str[1] = "neg";
             }
 
