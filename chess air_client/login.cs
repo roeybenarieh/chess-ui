@@ -167,9 +167,13 @@ namespace connect4_client
                     change_password.ShowDialog();
                 });
             }
-            else if (textFromServer == "code or captcha incorect")
+            else if (textFromServer == "code incorect")
             {
                 Change_outputtext_txt("the verefication code is incorrect ");
+            }
+            else if (textFromServer == "captcha incorect")
+            {
+                Change_outputtext_txt("the captcha is incorrect ");
             }
             else if (textFromServer == "coudnt send mail")
             {

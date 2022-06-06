@@ -2,3 +2,26 @@
 .serena/
 chess air_client/bin/Release/
 chess air_client/obj/Release/
+
+# Secrets and local data
+*.mdf
+*.ldf
+
+# Build output (keep bin/Debug/captcha: the server Dockerfile copies it)
+**/bin/Release/
+**/obj/
+**/bin/Debug/*.pdb
+**/bin/Debug/log.txt
+
+# Visual Studio / MSBuild
+.vs/
+*.user
+*.suo
+TestResults/
+
+# Tool and editor output
+.playwright-mcp/
+*.log
+*.swp
+.DS_Store
+Thumbs.db

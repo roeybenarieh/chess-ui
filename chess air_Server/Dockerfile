@@ -16,6 +16,13 @@ RUN msbuild "chess air_Server.csproj" /p:Configuration=Release /restore
 FROM mono:6.12 AS runtime
 WORKDIR /app
 
+# ODBC driver manager + PostgreSQL driver (DBH.cs uses System.Data.Odbc)
+RUN sed -i 's/deb.debian.org/archive.debian.org/g; s/security.debian.org/archive.debian.org/g; /buster-updates/d' /etc/apt/sources.list \
+    && apt-get -o Acquire::Check-Valid-Until=false update && apt-get install -y --no-install-recommends unixodbc odbc-postgresql \
+    && DRV=$(find /usr/lib -name 'psqlodbcw.so' | head -1) \
+    && printf '[PostgreSQL Unicode]\nDriver = %s\nDriver64 = %s\n' "$DRV" "$DRV" > /etc/odbcinst.ini \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build ["/src/chess-ui/chess-air-server/bin/Release/", "./"]
 COPY --from=build ["/src/chess-ui/chess-air-server/bin/Debug/captcha", "./captcha"]
 

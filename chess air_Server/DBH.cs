@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Odbc;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,10 +10,28 @@ namespace chess_air_Server
 {
     class DBH
     {
-        private static String connectionString = build_connection_string();
-        private static SqlConnection sqlConnection = new SqlConnection(connectionString);
-        private static SqlCommand cmd = new SqlCommand();
-        private static SHA512 shaM = new SHA512Managed();
+        private static readonly String connectionString = build_connection_string();
+
+        // Every query opens its own connection. Each client is served on its own thread, and a shared
+        // connection/command let one client's query run with another client's SQL (wrong user id, "already open").
+        private static OdbcConnection Open()
+        {
+            OdbcConnection connection = new OdbcConnection(connectionString);
+            connection.Open();
+            return connection;
+        }
+        private static object Scalar(string stm)
+        {
+            using (OdbcConnection connection = Open())
+            using (OdbcCommand cmd = new OdbcCommand(stm, connection))
+                return cmd.ExecuteScalar();
+        }
+        private static int Execute(string stm)
+        {
+            using (OdbcConnection connection = Open())
+            using (OdbcCommand cmd = new OdbcCommand(stm, connection))
+                return cmd.ExecuteNonQuery();
+        }
 
         //username and password are hashed in the database
 
@@ -27,12 +45,8 @@ namespace chess_air_Server
             for (int i = 0; i < username_password.Length; i++)
                 if (checkForSQLInjection(username_password[i]))
                     return false;
-            String stm = "select count(username) from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            int count = (int)cmd.ExecuteScalar();
-            sqlConnection.Close();
+            String stm = "select count(username)::int from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
+            int count = Convert.ToInt32(Scalar(stm));
             if (count == 1) { return true; }
             else { return false; }
         }
@@ -44,11 +58,7 @@ namespace chess_air_Server
         public static int get_id(String[] username_password) //get the id for future comunication with the DB- PK!
         {
             String stm = "select Id from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            int id = (int)cmd.ExecuteScalar();
-            sqlConnection.Close();
+            int id = (int)Scalar(stm);
             return id;
         }
 
@@ -61,14 +71,6 @@ namespace chess_air_Server
         {
             //retrieve the SQL Server instance version
             string stm = @"select * from Games where wplayerid = " + client_id + " or bplayerid = " + client_id + " ORDER BY game_id DESC";
-            
-            cmd.CommandText = stm;
-
-            //open connection
-            sqlConnection.Open();
-
-            //execute the SQLCommand
-            SqlDataReader dr = cmd.ExecuteReader();
 
             string[][] tmp = new string[15][];//15 games, for each one 3 peaces of information
             for (int i = 0; i < tmp.Length; i++)
@@ -76,6 +78,9 @@ namespace chess_air_Server
                 tmp[i] = new string[4];
 
             }
+            using (OdbcConnection connection = Open())
+            using (OdbcCommand cmd = new OdbcCommand(stm, connection))
+            using (OdbcDataReader dr = cmd.ExecuteReader())
             //check if there are records
             if (dr.HasRows)
             {
@@ -101,12 +106,6 @@ namespace chess_air_Server
                 }
             }
 
-            //close data reader
-            dr.Close();
-
-            //close connection
-            sqlConnection.Close();
-
             string[] result = new string[15];
             for(int i=0; i < tmp.Length; i++)
             {
@@ -126,15 +125,11 @@ namespace chess_air_Server
         public static string[] getgame(int client_id, int gameid)
         {
             String stm = @"select date_time, wplayerid, bplayerid, moves from Games where game_id=" + gameid+ " AND (wplayerid=" + client_id + " OR bplayerid=" + client_id + ")";
-            cmd.CommandText = stm;
-
-            //open connection
-            sqlConnection.Open();
-
-            //execute the SQLCommand
-            SqlDataReader dr = cmd.ExecuteReader();
 
             string[] result = new string[4];
+            using (OdbcConnection connection = Open())
+            using (OdbcCommand cmd = new OdbcCommand(stm, connection))
+            using (OdbcDataReader dr = cmd.ExecuteReader())
             //check if there are records
             if (dr.HasRows)
             {
@@ -146,12 +141,6 @@ namespace chess_air_Server
                     result[3]= dr.GetString(3);             //string moves
                 }
             }
-
-            //close data reader
-            dr.Close();
-
-            //close connection
-            sqlConnection.Close();
 
             return result;
         }
@@ -165,12 +154,8 @@ namespace chess_air_Server
         {
             if (checkForSQLInjection(username))
                 return false;
-            String stm = "select count(username) from users where username='" + gethash(username) + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            int count = (int)cmd.ExecuteScalar();//Executenonquery();
-            sqlConnection.Close();
+            String stm = "select count(username)::int from users where username='" + gethash(username) + "'";
+            int count = Convert.ToInt32(Scalar(stm));//Executenonquery();
             if (count >= 1) { return true; }
             else { return false; }
         }
@@ -184,11 +169,7 @@ namespace chess_air_Server
             if (id == -1)
                 return "AI";
             String stm = "select nickname from users where Id='" + id + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            String nickname = (string)cmd.ExecuteScalar();
-            sqlConnection.Close();
+            String nickname = (string)Scalar(stm);
             return nickname;
         }
         
@@ -200,11 +181,7 @@ namespace chess_air_Server
         public static String get_mail(int id)
         {
             String stm = "select mail from users where Id='" + id + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            String mail = (string)cmd.ExecuteScalar();
-            sqlConnection.Close();
+            String mail = (string)Scalar(stm);
             return mail;
         }
         /// <summary>
@@ -215,11 +192,7 @@ namespace chess_air_Server
         public static string get_last_password_change(int id)
         {
             String stm = "select change_password from users where Id='" + id + "'";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            DateTime datetime = (DateTime)cmd.ExecuteScalar();
-            sqlConnection.Close();
+            DateTime datetime = (DateTime)Scalar(stm);
             return datetime.ToShortDateString();
         }
 
@@ -233,12 +206,8 @@ namespace chess_air_Server
         {
             if (checkForSQLInjection(username) || checkForSQLInjection(new_password))
                 return false;
-            String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = getdate() WHERE username = '" + gethash(username) + "'; ";
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            int rows = cmd.ExecuteNonQuery();
-            sqlConnection.Close();
+            String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = CURRENT_DATE WHERE username = '" + gethash(username) + "'; ";
+            int rows = Execute(stm);
             if (rows == 1)
                 return true;
             return false;
@@ -256,7 +225,7 @@ namespace chess_air_Server
             string user = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
             string password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
             return String.Format(
-                "Server=tcp:{0},{1};Database={2};User Id={3};Password={4};TrustServerCertificate=True;",
+                "Driver={{PostgreSQL Unicode}};Server={0};Port={1};Database={2};Uid={3};Pwd={4};",
                 host, port, name, user, password);
         }
 
@@ -293,25 +262,26 @@ namespace chess_air_Server
                 usepass[1] = gethash(usepass[1]);
                 for (int i = 0; i < usepass.Length; i++)
                 {
-                    if (checkForSQLInjection(usepass[i]))
-                        return false;
                     if (usepass[i] == "" || usepass[i] == null)
                     {
                         usepass[i] = "null";
                         if (i == 2)
                             usepass[i] = "'anonymous'";
                     }
-                    else
-                        usepass[i] = "'" + usepass[i] + "'";
+                    else // doubling quotes keeps every value inside its string literal (no checkForSQLInjection: it rejects the '@' of every mail address)
+                        usepass[i] = "'" + usepass[i].Replace("'", "''") + "'";
                 }
                 string stm = "insert into users (username,password,nickname,mail,age,country,city) values (" + usepass[0] + "," + usepass[1] + "," + usepass[2] + "," + usepass[3] + "," + usepass[4] + "," + usepass[5] + "," + usepass[6] + ")";
 
-                cmd.Connection = sqlConnection;
-                cmd.CommandText = stm;
-                sqlConnection.Open();
-                cmd.ExecuteNonQuery();
-                sqlConnection.Close();
-                return true;
+                try
+                {
+                    Execute(stm);
+                    return true;
+                }
+                catch (Exception) // e.g. a value longer than its column; the client gets "there was a problem in the server"
+                {
+                    return false;
+                }
             }
             return false;
         }
@@ -325,11 +295,7 @@ namespace chess_air_Server
         public static void insert_game(string white_player_id, string black_player_id, string game)
         {
             string stm = String.Format("insert into Games (wplayerid,bplayerid,moves) values ({0},{1},'{2}')", white_player_id, black_player_id, game);
-            cmd.Connection = sqlConnection;
-            cmd.CommandText = stm;
-            sqlConnection.Open();
-            cmd.ExecuteNonQuery();
-            sqlConnection.Close();
+            Execute(stm);
         }
         /// <summary>
         /// gets a string and check if it contain sql saved statments, if so it might can be sql injection

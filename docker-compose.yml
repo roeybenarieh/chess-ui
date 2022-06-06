@@ -1,50 +1,88 @@
 # The chess engine is vendored in ./chess-engine (no separate clone needed).
 #
-# The WinForms desktop client ("chess air_client") is NOT part of this compose
-# file - it's a native Windows GUI app and can't run in a Linux container.
-# Run it on a Windows host/VM and point its hardcoded server IP (Program.cs)
-# at this machine's address, port 500.
+# Free-tier deployment (Oracle Cloud Always Free Ampere A1, arm64):
+#   postgres  - database (SQL Server has no arm64 build; Postgres does)
+#   server    - C# server (Mono), listens on port 500
+#   bridge    - websockify: WebSocket <-> TCP, so browsers can use the server's raw TCP protocol
+#   web       - Caddy: serves the browser client (./web) and proxies /ws to the bridge,
+#               with an automatic HTTPS certificate for SITE_ADDRESS
 
 services:
-  db:
-    build:
-      context: .
-      dockerfile: db/Dockerfile
+  postgres:
+    image: postgres:16
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: Developer
-      MSSQL_SA_PASSWORD: ${DB_SA_PASSWORD:?set DB_SA_PASSWORD in .env}
-      DB_NAME: ${DB_NAME:-ChessDB}
+      POSTGRES_DB: ${DB_NAME:-chessdb}
+      POSTGRES_USER: ${DB_USER:-chess}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
     volumes:
-      - chess-db-data:/var/opt/mssql/data
-    ports:
-      - "1433:1433"
+      - chess-db-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-chess} -d ${DB_NAME:-chessdb}"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
+    restart: unless-stopped
 
   server:
     build:
       context: ..
       dockerfile: chess-ui/chess air_Server/Dockerfile
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     environment:
       SERVER_LISTEN_IP: "0.0.0.0"
       SERVER_PORT: "500"
-      DB_HOST: db
-      DB_PORT: "1433"
-      DB_NAME: ${DB_NAME:-ChessDB}
-      DB_USER: sa
-      DB_PASSWORD: ${DB_SA_PASSWORD:?set DB_SA_PASSWORD in .env}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-chessdb}
+      DB_USER: ${DB_USER:-chess}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     ports:
-      - "500:500"
+      - "500:500"   # desktop client (chess air_client)
+    restart: unless-stopped
+
+  bridge:
+    build:
+      dockerfile_inline: |
+        FROM python:3.13-alpine
+        RUN pip install --no-cache-dir websockify
+    command: ["websockify", "6080", "server:500"]
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  web:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      - ./web:/srv:ro
+      - caddy-data:/data
+    depends_on:
+      - bridge
+    restart: unless-stopped
+
+configs:
+  caddyfile:
+    # SITE_ADDRESS: a domain pointing at this host (e.g. 1-2-3-4.sslip.io) gets a free
+    # Let's Encrypt certificate; "localhost" uses a self-signed one.
+    content: |
+      ${SITE_ADDRESS:-localhost} {
+        encode gzip
+        header Cache-Control no-cache
+        reverse_proxy /ws bridge:6080
+        root * /srv
+        file_server
+      }
 
 volumes:
   chess-db-data:
+  caddy-data:

@@ -39,12 +39,12 @@ A replayed game in progress. The move list on the right shows each move:
 
 ## Architecture
 
-| Part | Folder | Tech | Runs on |
-|------|--------|------|---------|
-| Server | `chess air_Server/` | C# (.NET Framework 4.8), Mono | Docker (`mono:6.12`), port 500 |
-| Database | `db/` | SQL Server 2022 | Docker, port 1433 |
+| Part           | Folder              | Tech                               | Runs on                                          |
+| -------------- | ------------------- | ---------------------------------- | ------------------------------------------------ |
+| Server         | `chess air_Server/` | C# (.NET Framework 4.8), Mono      | Docker (`mono:6.12`), port 500                   |
+| Database       | `db/`               | SQL Server 2022                    | Docker, port 1433                                |
 | Desktop client | `chess air_client/` | C# WinForms (.NET Framework 4.7.2) | Windows, or Mono on Linux with a desktop session |
-| Chess engine | `chess-engine/` | C# (.NET Framework 4.7.2) | Compiled into the server |
+| Chess engine   | `chess-engine/`     | C# (.NET Framework 4.7.2)          | Compiled into the server                         |
 
 The database is seeded from `chess air_Server/DB.mdf` on first start. Its data is kept in a
 Docker volume, so it survives restarts.
@@ -66,11 +66,11 @@ Docker volume, so it survives restarts.
 
    Then edit `.env`:
 
-   | Variable | Purpose |
-   |----------|---------|
-   | `DB_SA_PASSWORD` | SQL Server `sa` password. Must meet SQL Server's complexity rules (8+ characters, with upper and lower case, plus a digit or symbol). |
-   | `DB_NAME` | Name the database is attached as. Defaults to `ChessDB`. |
-   | `SMTP_USER`, `SMTP_PASSWORD` | Mail account the server uses to send login codes and captchas. |
+   | Variable                     | Purpose                                                                                                                               |
+   | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+   | `DB_SA_PASSWORD`             | SQL Server `sa` password. Must meet SQL Server's complexity rules (8+ characters, with upper and lower case, plus a digit or symbol). |
+   | `DB_NAME`                    | Name the database is attached as. Defaults to `ChessDB`.                                                                              |
+   | `SMTP_USER`, `SMTP_PASSWORD` | Mail account the server uses to send login codes and captchas.                                                                        |
 
 2. Build and start the backend:
 
@@ -102,18 +102,18 @@ server on another machine, change `ipAddress` there and rebuild.
 
 ## Common commands
 
-| Command | What it does |
-|---------|--------------|
-| `just up` | Build and start the server and database |
-| `just ps` | Show container status |
-| `just logs server` | Follow the server log (use `db` for the database) |
-| `just smoke` | Check the server port and the user table |
-| `just shell-server` | Open a shell in the server container |
-| `just sqlcmd` | Open a SQL session on the database container |
-| `just down` | Stop containers, keep the database |
-| `just clean` | Stop containers and delete the database volume |
-| `just rebuild` | Delete everything and rebuild from scratch |
-| `just client` | Build and start the desktop client |
+| Command             | What it does                                      |
+| ------------------- | ------------------------------------------------- |
+| `just up`           | Build and start the server and database           |
+| `just ps`           | Show container status                             |
+| `just logs server`  | Follow the server log (use `db` for the database) |
+| `just smoke`        | Check the server port and the user table          |
+| `just shell-server` | Open a shell in the server container              |
+| `just sqlcmd`       | Open a SQL session on the database container      |
+| `just down`         | Stop containers, keep the database                |
+| `just clean`        | Stop containers and delete the database volume    |
+| `just rebuild`      | Delete everything and rebuild from scratch        |
+| `just client`       | Build and start the desktop client                |
 
 ## Project layout
 

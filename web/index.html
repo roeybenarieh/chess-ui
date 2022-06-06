@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chessair</title>
+<link rel="icon" href="img/11.png">
+<!-- Browser port of the WinForms client (chess air_client/). Positions, sizes, fonts and
+     colors are copied from the *.Designer.cs files; colors follow Mono's theme
+     (Control #ece9d8, ActiveCaption #0054e3, Highlight #316ac5). -->
+<style>
+    :root { --sans: "Microsoft Sans Serif", Arial, "Liberation Sans", sans-serif; --impact: Impact, Haettenschweiler, "Arial Narrow Bold", "DejaVu Sans Condensed", "Liberation Sans Narrow", var(--sans) }
+    [hidden] { display: none !important }
+    body { margin: 0; height: 100vh; display: grid; place-items: center; background: #222; overflow: hidden; font: 8.25pt var(--sans) }
+    .form { position: relative; overflow: hidden; background: #ece9d8 }
+    .form > * { position: absolute; margin: 0; box-sizing: border-box; white-space: nowrap }
+    .bg { background: url(img/bg.jpg) 0 0 / 100% 100% }
+    .impact { font-family: var(--impact) }
+    button { font: inherit; color: #000; padding: 0; border: 1px solid #000; box-shadow: inset -1px -1px #0006, inset 1px 1px #fff9; overflow: hidden }
+    .form button { white-space: normal }
+    input { font-family: var(--sans); border: 1px solid #7f9db9; padding: 0 2px }
+    .out { color: red; font: bold 20pt var(--sans) }
+    .blue { color: mediumblue; font: 30pt var(--sans); background: none }
+    .green { background-color: forestgreen }
+    #status { position: fixed; top: 0; left: 0; right: 0; z-index: 9; padding: 4px; background: #c00; color: #fff; text-align: center; font-size: 14pt }
+
+    /* login: captcha (added after "login done") */
+    .captcha { width: 550px; height: 70px; overflow: hidden; white-space: normal; font: 11pt var(--impact); background: #ece9d8 }
+    .cap { width: 60px; height: 60px; background: transparent }
+
+    /* chess */
+    #board { left: 350px; top: 30px; display: grid; grid-template: repeat(8, 80px) / repeat(8, 80px) }
+    #board button, #promo button, #moves button { border: 5px solid; box-shadow: none; background: center / 80px no-repeat border-box }
+    #board .g { background-color: green; border-color: green }
+    #board .w { background-color: #fff; border-color: #fff }
+    #board .pot { border-color: red }
+    #board button:hover { filter: brightness(.92) }
+    #promo { top: 30px; z-index: 2; display: grid; grid-template-rows: repeat(4, 80px); width: 80px }
+    #promo button { background-color: honeydew; border-color: honeydew }
+    #moves { left: 1005px; top: 30px; width: 217px; height: 640px; background: #fff; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 80px; align-content: start }
+    #moves button { font-size: 16pt }
+    #moves .mw { background-color: #fff; border-color: #fff; color: #000 }
+    #moves .mb { background-color: #000; border-color: #000; color: #fff }
+    #games { left: 12px; top: 358px; width: 315px; height: 290px; border: 1px solid #000; overflow: auto; display: flex; flex-wrap: wrap; align-content: flex-start }
+    #games button { margin: 3px; height: 23px; padding: 0 6px; color: green; background: #ece9d8; white-space: nowrap }
+    .nick { font: 15pt var(--sans); color: dodgerblue }
+</style>
+</head>
+<body>
+<div id="status">connecting to the server...</div>
+
+<!-- login.Designer.cs -->
+<div id="login" class="form bg" style="width:795px;height:442px">
+    <button id="registration" class="impact" style="left:33px;top:38px;width:114px;height:80px;font-size:15pt;background-color:#316ac5">create new acount</button>
+    <span id="l-title" style="left:312px;top:19px;font:50.25pt 'Segoe Print',var(--sans);color:orangered">login</span>
+    <img id="l-user" src="img/user.png" alt="" style="left:9px;top:174px;width:47px;height:47px">
+    <img id="l-lock" src="img/lock.png" alt="" style="left:9px;top:282px;width:47px;height:46px">
+    <span id="l-ulabel" class="impact" style="left:62px;top:169px;font-size:30pt;color:#fff">username:</span>
+    <span id="l-plabel" class="impact" style="left:62px;top:275px;font-size:30pt;color:#fff">password:</span>
+    <input id="username" style="left:315px;top:169px;width:196px;height:45px;font-size:25pt">
+    <input id="password" type="password" style="left:315px;top:275px;width:196px;height:45px;font-size:25pt">
+    <button id="loginbutton" class="impact" style="left:619px;top:217px;width:111px;height:70px;font-size:20pt;background-color:#0054e3">login</button>
+    <span id="l-out" class="out" style="left:51px;top:383px"></span>
+    <a id="l-github" href="https://github.com/roeybenarieh/chess-ui" target="_blank" rel="noopener noreferrer" title="chess-ui on GitHub" style="left:730px;top:380px;width:40px;height:40px;display:block">
+        <svg viewBox="0 0 16 16" width="40" height="40" aria-hidden="true"><path fill="#fff" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    </a>
+</div>
+
+<!-- register.Designer.cs -->
+<div id="register" class="form bg" style="width:800px;height:450px" hidden>
+    <img src="img/user.png" alt="" style="left:2px;top:29px;width:45px;height:45px">
+    <img src="img/lock.png" alt="" style="left:2px;top:93px;width:45px;height:45px">
+    <span class="blue" style="left:40px;top:24px">username</span>
+    <span class="blue" style="left:41px;top:86px">password</span>
+    <span class="blue" style="left:42px;top:149px">mail</span>
+    <span class="blue" style="left:42px;top:206px">nickname</span>
+    <span class="blue" style="left:42px;top:258px">age</span>
+    <span class="blue" style="left:42px;top:308px">country</span>
+    <span class="blue" style="left:42px;top:355px">city</span>
+    <input id="rusername" style="left:242px;top:38px;width:173px;height:30px;font-size:15pt">
+    <input id="rpassword" type="password" style="left:242px;top:96px;width:173px;height:30px;font-size:15pt">
+    <input id="remail" maxlength="20" style="left:242px;top:158px;width:173px;height:30px;font-size:15pt">
+    <input id="rnickname" maxlength="10" style="left:242px;top:217px;width:173px;height:30px;font-size:15pt">
+    <input id="rage" maxlength="3" style="left:242px;top:268px;width:173px;height:30px;font-size:15pt">
+    <input id="rcountry" maxlength="10" style="left:242px;top:318px;width:173px;height:30px;font-size:15pt">
+    <input id="rcity" maxlength="10" style="left:242px;top:367px;width:173px;height:30px;font-size:15pt">
+    <button id="regist" style="left:478px;top:196px;width:286px;height:201px;font-size:45pt;background-color:#316ac5">regist</button>
+    <button id="back" style="left:641px;top:6px;width:147px;height:64px;font-size:26pt;background-color:blue">&larr;Back</button>
+    <span id="r-out" class="out" style="left:31px;top:410px"></span>
+</div>
+
+<!-- chess.Designer.cs + chess.cs Load_board() -->
+<div id="chess" class="form" style="width:1236px;height:709px" hidden>
+    <span id="outcome" style="left:28px;top:55px;font:20pt var(--sans);text-decoration:underline;color:green;white-space:pre"></span>
+    <button id="resign" style="left:260px;top:30px;width:80px;height:40px;background:green;border:2px solid #000;box-shadow:none">resign</button>
+    <button id="play_friend" class="green" style="left:8px;top:94px;width:262px;height:120px;font-size:30pt;cursor:pointer">play vs friend</button>
+    <button id="playai" class="green" style="left:8px;top:223px;width:262px;height:120px;font-size:30pt;cursor:pointer">play vs AI</button>
+    <div id="games"></div>
+    <button id="less" class="green" style="left:12px;top:654px;width:164px;height:29px">less</button>
+    <button id="more" class="green" style="left:182px;top:654px;width:145px;height:29px">more</button>
+    <span id="opp" class="nick" style="left:350px;top:0" hidden></span>
+    <span id="me" class="nick" style="left:350px;top:670px" hidden></span>
+    <div id="board"></div>
+    <div id="promo" hidden></div>
+    <div id="moves"></div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

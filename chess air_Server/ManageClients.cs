@@ -5,7 +5,6 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
-using System.Data.SqlClient;
 using System.Net;
 using System.Net.Sockets;
 using System.Windows;
@@ -45,6 +44,7 @@ namespace chess_air_Server
             _client = client;
             // get the ip address of the client to register him with our client list
             _clientIP = client.Client.RemoteEndPoint.ToString();
+            session = this;
 
             // Add the new client to our clients collection
             AllClients.Add(_clientIP, this);
@@ -67,7 +67,7 @@ namespace chess_air_Server
                                                  0,
                                                  System.Convert.ToInt32(_client.ReceiveBufferSize),
                                                  ReceiveMessage,
-                                                 null);
+                                                 _client);
             }
 
         }
@@ -87,21 +87,14 @@ namespace chess_air_Server
             //Thread.Sleep(300);
             try
             {
-                System.Net.Sockets.NetworkStream ns;
+                // '\n' ends every message (the client splits on it: TCP can merge or split writes)
+                byte[] bytesToSend = System.Text.Encoding.ASCII.GetBytes(message + "\n");
 
-                // use lock to present multiple threads from using the networkstream object
-                // this is likely to occur when the server is connected to multiple clients all of 
-                // them trying to access to the networkstram at the same time.
+                // the opponent's thread also sends to this client (1v1), so a whole message is written under the lock
                 lock (_client.GetStream())
                 {
-                    ns = _client.GetStream();
+                    _client.GetStream().Write(bytesToSend, 0, bytesToSend.Length);
                 }
-
-                // Send data to the client
-                byte[] bytesToSend = System.Text.Encoding.ASCII.GetBytes(message);
-                //Thread.Sleep(100);
-                ns.Write(bytesToSend, 0, bytesToSend.Length);
-                ns.Flush();
             }
             catch (Exception ex)
             {
@@ -109,6 +102,19 @@ namespace chess_air_Server
                 return;
             }
         }
+        // bytes read from the client but not handled yet: every message ends with '\n', and TCP may merge or split messages
+        private string received = "";
+
+        // session resume: a logged-in client whose connection drops keeps its login, captcha and game for ResumeGraceSeconds,
+        // so a phone that suspends the browser can reconnect to the same session
+        public const int ResumeGraceSeconds = 300;
+        private static readonly object SessionLock = new object();
+        private static readonly Dictionary<string, ManageClient> Sessions = new Dictionary<string, ManageClient>();
+        private string session_token;
+        private ManageClient session; // the object that reads this session's socket: this, or the connection it was resumed on
+        private bool detached; // the socket was lost and the session is waiting for a resume
+        private System.Threading.Timer grace_timer;
+
         ///<summary>
         /// recieve and handel incomming streem 
         /// Asynchrom
@@ -119,230 +125,357 @@ namespace chess_air_Server
             int bytesRead;
             try
             {
+                // a read started on a socket this object no longer uses (it was resumed on a new one) is stale
+                if (!ReferenceEquals(ar.AsyncState, _client))
+                    return;
+
                 lock (_client.GetStream())
                 {
                     // call EndRead to handle the end of an async read.
                     bytesRead = _client.GetStream().EndRead(ar);
                 }
-                // if bytesread<1 -> the client disconnected
-                string messageReceived = System.Text.Encoding.ASCII.GetString(data, 0, bytesRead); //the recieved message in string
-                if (bytesRead < 1 || messageReceived == "###quit###")
+                if (bytesRead < 1) // the client disconnected
                 {
-                    // remove the client from the list of clients
-                    AllClients.Remove(_clientIP);
+                    OnSocketLost(); // the session stays for a resume
                     return;
                 }
-                else if (messageReceived.StartsWith("public key:"))
+                received += System.Text.Encoding.ASCII.GetString(data, 0, bytesRead);
+                int end;
+                while ((end = received.IndexOf('\n')) >= 0)
                 {
-                    rsa.setPublicKey(messageReceived.Remove(0, 11));
-                    Console.WriteLine("RSA initialized at server for the new connection");
-                    SendMessage("public key:" + rsa.GetPublicKey(), incripted: false);
-                }
-                else // client still connected
-                {
-                    //messageReceived = rsa.Decrypt(messageReceived);
-                    Console.WriteLine(messageReceived);
-                    if (messageReceived.StartsWith("###login###"))// window1- login
+                    string messageReceived = received.Substring(0, end);
+                    received = received.Substring(end + 1);
+                    if (messageReceived == "###quit###")
                     {
-                        String userdatatmp = messageReceived.Remove(0, 11);
-                        String[] userdata = userdatatmp.Split('&');
-                        if (DBH.login(userdata))
-                        {
-                            this.client_id = DBH.get_id(userdata);
-                            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-                            var stringChars = new char[10];
-                            var random = new Random();
-                            for (int i = 0; i < stringChars.Length; i++)
-                            {
-                                stringChars[i] = chars[random.Next(chars.Length)];
-                            }
-                            this.mailcode = new String(stringChars);
-                            if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
-                            {
-                                SendMessage("login done"); Thread.Sleep(50);
-                                for (int i = 0; i < 3; i++)
-                                {
-                                    string[] tmp = MainProgram.Get_random_captcha();
-                                    captcha[i] = tmp[1];
-                                    //message += "%" + tmp[0];
-                                    SendMessage("captcha%" + i + "%" + tmp[0], incripted: false);
-                                }
-                            }
-                            else
-                                SendMessage("coudnt send mail");
-                        }
-                        else
-                        {
-                            SendMessage("login not done");
-                        }
+                        AllClients.Remove(_clientIP);
+                        session.EndSession();
+                        return;
                     }
-                    else if (messageReceived.StartsWith("###mail+capcha###"))// window1- confirm email
-                    {
-                        String message = messageReceived.Remove(0, 17);
-                        string[] data = message.Split('%');
-                        for (int i = 1; i < data.Length; i++)
-                        {
-                            if (data[i] == "True")
-                                data[i] = "pos";
-                            else
-                                data[i] = "neg";
-                        }
-                        bool isAdminCode = data[0].Equals("admin");
-                        bool captchaCorrect = data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2]);
-                        if (isAdminCode || (mailcode.Equals(data[0]) && captchaCorrect))
-                        {
-                            string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
-                            string[] last_date = DBH.get_last_password_change(this.client_id).Split('/');
-                            if (!today_date[1].Equals(last_date[1]) && false)//every start of a new month new password need to be created.
-                                SendMessage("code done - change password");
-                            else
-                                SendMessage("code done");
-                        }
-                        else
-                            SendMessage("code or captcha incorect");
-                    }
-                    //
-                    else if (messageReceived.StartsWith("###regist###"))// window2- registration
-                    {
-                        String userdatatmp = messageReceived.Remove(0, 12);
-                        String[] userdata = userdatatmp.Split('&');
-
-                        if (userdata[0].Length >4 && userdata[1].Length > 4) //making sure the username and password is in the right length
-                        {
-                            if (!DBH.IsUsernameExist(userdata[0]))
-                            {
-                                if (DBH.InsertNewUser(userdatatmp))
-                                {
-                                    string message = "your registration completed!";
-                                    if (send_email("welcome to chessair", message, userdata[3]))
-                                    {
-                                        SendMessage("regist complited"); //was able to create new user and send comfirmation mail
-                                    }
-                                    else
-                                        SendMessage("regist mail incorrect");
-                                }
-                                else
-                                {
-                                    SendMessage("there was a problem in the server, please try again later");//coudnt create new user, problem with the database
-                                }
-                            }
-                            else
-                            {
-                                SendMessage("username already exist!");
-                            }
-                        }
-                    }
-                    else if (messageReceived.StartsWith("###change_password###"))// window3- change password
-                    {
-                        String userdatatmp = messageReceived.Remove(0, 21);
-                        String[] userdata = userdatatmp.Split('$');
-                        if (userdata[2].Length >4) //the new password is in the correct length
-                        {
-                            if (DBH.login(userdata))
-                            {
-                                if (Computediff(userdata[1], userdata[2]) <= 3)
-                                    SendMessage("bad password");
-                                else
-                                {
-                                    if (!userdata[2].Equals(userdata[3]))
-                                        SendMessage("repeated password isn't correct");
-                                    else
-                                    {
-                                        if (DBH.change_password(userdata[0], userdata[2]))
-                                            SendMessage("password changed");
-                                        else
-                                            SendMessage("there is a problemo");
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                SendMessage("username or current password are incorect!");
-                            }
-                        }
-                    }
-                    else // window3- game
-                    {
-                        if (messageReceived.StartsWith("###getplayedgames###"))
-                        {//gets the last 15 games
-                            messageReceived = messageReceived.Remove(0, 20);
-                            if(! int.TryParse(messageReceived, out int gameswatched))//if there isnt any id number, use id=1
-                            {
-                                gameswatched = 0;
-                            }
-                            //get the 15 latest games from the id (or less ir there arent enough played games
-
-                            string[] gamesinfos = DBH.getgamesinfo(client_id,gameswatched);
-                            foreach (string game in gamesinfos)
-                                if(game != null)
-                                {
-                                    SendMessage("###gamedata###" + game);
-                                    Thread.Sleep(100);
-                                }
-                        }
-                        else if (messageReceived.StartsWith("###getgame###")) //id"
-                        {//gets the last 15 games
-                            messageReceived = messageReceived.Remove(0, 13);
-                            //brodcast the whole new game to the client
-                            string[] game = DBH.getgame(client_id, Int32.Parse(messageReceived));
-                            SendMessage("###start_game###" + DBH.get_nickname(Int32.Parse(game[1])) + "&" + DBH.get_nickname(Int32.Parse(game[2])) + "&" + ((game[1].Equals(client_id.ToString())) ? "white":"black") + "&oldgame");
-                            Thread.Sleep(300);
-                            foreach (string move in game[3].Split('-'))
-                            {//X,Y cordinates of moves
-                                SendMessage("###move###" + move);//remove the ',' from the string
-                                Thread.Sleep(100);
-                            }
-                            
-                        }
-                        else if (messageReceived == "###ready_to_play_vs_friend###")
-                        {
-                            Boolean search_player = true;
-                            if (AllClients.Count > 1)
-                            {
-                                foreach (DictionaryEntry client in AllClients)
-                                {
-                                    if (search_player)
-                                    {
-                                        if (((ManageClient)(client.Value))._client != this._client && ((ManageClient)(client.Value)).ready_to_play)
-                                        {
-                                            ((ManageClient)(client.Value)).ready_to_play = false;//
-                                            this.ready_to_play = false;// both players cant play right now, they are already in a game
-                                            search_player = false;
-                                            this.game = new _1v1(((ManageClient)(client.Value)), this);
-                                            ((ManageClient)(client.Value)).game = this.game;
-                                        }
-                                    }
-                                }
-                            }
-                            if (search_player == true) // didnt found a opponent to play with
-                                ready_to_play = true;
-                        }
-                        else if (messageReceived.StartsWith("###ready_to_play_vs_ai###"))
-                        {
-                            this.ready_to_play = false;
-                            this.game = new _1vsAI(this);
-                        }
-                        else if(this.game != null)//in the middle of a game..
-                        {
-                            if (messageReceived.Equals("###resignation###"))
-                            {
-                                this.game.ResignationHandler(this);
-                            }
-                            else if(this.my_turn) //if it is this clients turn
-                                this.game.GameMessageHandler(messageReceived);
-                        }
-                    }
+                    if (messageReceived.StartsWith("###resume###"))
+                        ResumeSession(messageReceived.Remove(0, 12));
+                    else
+                        session.HandleMessage(messageReceived);
                 }
                 lock (_client.GetStream())
                 {
                     // continue reading form the client
-                    _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, null);
+                    _client.GetStream().BeginRead(data, 0, System.Convert.ToInt32(_client.ReceiveBufferSize), ReceiveMessage, _client);
                 }
             }
             catch (Exception e)
             {
-                AllClients.Remove(_clientIP);
-                Console.WriteLine(this.client_id.ToString() + " has left.");
+                OnSocketLost();
+                Console.WriteLine(this.client_id.ToString() + " has left: " + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// the socket this object reads was lost: a logged-in session is kept for ResumeGraceSeconds, others are removed
+        /// </summary>
+        private void OnSocketLost()
+        {
+            // a socket that a resume already replaced must not detach the session
+            if (session._client == _client)
+                session.Detach();
+        }
+
+        private void Detach()
+        {
+            lock (SessionLock)
+            {
+                if (detached)
+                    return;
+                if (session_token == null) // not logged in: nothing to keep
+                {
+                    AllClients.Remove(_clientIP);
+                    return;
+                }
+                detached = true;
+                grace_timer = new System.Threading.Timer(delegate (object s) { ExpireSession(); }, null, ResumeGraceSeconds * 1000, Timeout.Infinite);
+            }
+            Console.WriteLine(client_id.ToString() + " connection lost, session kept for resume");
+        }
+
+        private void ExpireSession()
+        {
+            lock (SessionLock)
+            {
+                if (!detached)
+                    return; // the client came back in time
+                Sessions.Remove(session_token);
+            }
+            AllClients.Remove(_clientIP);
+            Console.WriteLine(client_id.ToString() + " session expired");
+        }
+
+        /// <summary>
+        /// the client quit: forget its session
+        /// </summary>
+        private void EndSession()
+        {
+            lock (SessionLock)
+            {
+                if (grace_timer != null)
+                {
+                    grace_timer.Dispose();
+                    grace_timer = null;
+                }
+                if (session_token != null)
+                    Sessions.Remove(session_token);
+            }
+            AllClients.Remove(_clientIP);
+        }
+
+        /// <summary>
+        /// the client reconnected with the token it got at login: continue that session on this connection
+        /// </summary>
+        private void ResumeSession(string token)
+        {
+            ManageClient old = null;
+            lock (SessionLock)
+            {
+                if (token != null && Sessions.TryGetValue(token, out old))
+                    old.Reattach(this);
+                else
+                    old = null;
+            }
+            if (old == null)
+            {
+                SendMessage("resume failed");
+                return;
+            }
+            AllClients.Remove(_clientIP); // this connection now belongs to the old session
+            session = old;
+            SendMessage("resumed");
+        }
+
+        /// <summary>
+        /// called under SessionLock: the session continues on the socket and key of a new connection
+        /// </summary>
+        private void Reattach(ManageClient fresh)
+        {
+            if (grace_timer != null)
+            {
+                grace_timer.Dispose();
+                grace_timer = null;
+            }
+            detached = false;
+            _client = fresh._client;
+            rsa = fresh.rsa;
+            received = "";
+        }
+
+        /// <summary>
+        /// handle one message from the client
+        /// </summary>
+        /// <param name="messageReceived"></param>
+        private void HandleMessage(string messageReceived)
+        {
+            if (messageReceived.StartsWith("public key:"))
+            {
+                rsa.setPublicKey(messageReceived.Remove(0, 11));
+                Console.WriteLine("RSA initialized at server for the new connection");
+                SendMessage("public key:" + rsa.GetPublicKey(), incripted: false);
+            }
+            else // client still connected
+            {
+                //messageReceived = rsa.Decrypt(messageReceived);
+                Console.WriteLine(messageReceived);
+                if (messageReceived.StartsWith("###login###"))// window1- login
+                {
+                    String userdatatmp = messageReceived.Remove(0, 11);
+                    String[] userdata = userdatatmp.Split('&');
+                    if (DBH.login(userdata))
+                    {
+                        this.client_id = DBH.get_id(userdata);
+                        this.session_token = Guid.NewGuid().ToString("N");
+                        lock (SessionLock) { Sessions[session_token] = this; }
+                        SendMessage("session:" + session_token);
+                        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                        var stringChars = new char[10];
+                        var random = new Random();
+                        for (int i = 0; i < stringChars.Length; i++)
+                        {
+                            stringChars[i] = chars[random.Next(chars.Length)];
+                        }
+                        this.mailcode = new String(stringChars);
+                        if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
+                        {
+                            SendMessage("login done"); Thread.Sleep(50);
+                            for (int i = 0; i < 3; i++)
+                            {
+                                string[] tmp = MainProgram.Get_random_captcha();
+                                captcha[i] = tmp[1];
+                                //message += "%" + tmp[0];
+                                SendMessage("captcha%" + i + "%" + tmp[0], incripted: false);
+                            }
+                        }
+                        else
+                            SendMessage("coudnt send mail");
+                    }
+                    else
+                    {
+                        SendMessage("login not done");
+                    }
+                }
+                else if (messageReceived.StartsWith("###mail+capcha###"))// window1- confirm email
+                {
+                    String message = messageReceived.Remove(0, 17);
+                    string[] data = message.Split('%');
+                    for (int i = 1; i < data.Length; i++)
+                    {
+                        if (data[i] == "True")
+                            data[i] = "pos";
+                        else
+                            data[i] = "neg";
+                    }
+                    bool isAdminCode = data[0].Equals("admin");
+                    bool captchaCorrect = data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2]);
+                    if (isAdminCode || (mailcode.Equals(data[0]) && captchaCorrect))
+                    {
+                        string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
+                        string[] last_date = DBH.get_last_password_change(this.client_id).Split('/');
+                        if (!today_date[1].Equals(last_date[1]) && false)//every start of a new month new password need to be created.
+                            SendMessage("code done - change password");
+                        else
+                            SendMessage("code done");
+                    }
+                    else if (!isAdminCode && !mailcode.Equals(data[0]))
+                        SendMessage("code incorect");
+                    else
+                        SendMessage("captcha incorect");
+                }
+                //
+                else if (messageReceived.StartsWith("###regist###"))// window2- registration
+                {
+                    String userdatatmp = messageReceived.Remove(0, 12);
+                    String[] userdata = userdatatmp.Split('&');
+
+                    if (userdata[0].Length >4 && userdata[1].Length > 4) //making sure the username and password is in the right length
+                    {
+                        if (!DBH.IsUsernameExist(userdata[0]))
+                        {
+                            if (DBH.InsertNewUser(userdatatmp))
+                            {
+                                string message = "your registration completed!";
+                                if (send_email("welcome to chessair", message, userdata[3]))
+                                {
+                                    SendMessage("regist complited"); //was able to create new user and send comfirmation mail
+                                }
+                                else
+                                    SendMessage("regist mail incorrect");
+                            }
+                            else
+                            {
+                                SendMessage("there was a problem in the server, please try again later");//coudnt create new user, problem with the database
+                            }
+                        }
+                        else
+                        {
+                            SendMessage("username already exist!");
+                        }
+                    }
+                }
+                else if (messageReceived.StartsWith("###change_password###"))// window3- change password
+                {
+                    String userdatatmp = messageReceived.Remove(0, 21);
+                    String[] userdata = userdatatmp.Split('$');
+                    if (userdata[2].Length >4) //the new password is in the correct length
+                    {
+                        if (DBH.login(userdata))
+                        {
+                            if (Computediff(userdata[1], userdata[2]) <= 3)
+                                SendMessage("bad password");
+                            else
+                            {
+                                if (!userdata[2].Equals(userdata[3]))
+                                    SendMessage("repeated password isn't correct");
+                                else
+                                {
+                                    if (DBH.change_password(userdata[0], userdata[2]))
+                                        SendMessage("password changed");
+                                    else
+                                        SendMessage("there is a problemo");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            SendMessage("username or current password are incorect!");
+                        }
+                    }
+                }
+                else // window3- game
+                {
+                    if (messageReceived.StartsWith("###getplayedgames###"))
+                    {//gets the last 15 games
+                        messageReceived = messageReceived.Remove(0, 20);
+                        if(! int.TryParse(messageReceived, out int gameswatched))//if there isnt any id number, use id=1
+                        {
+                            gameswatched = 0;
+                        }
+                        //get the 15 latest games from the id (or less ir there arent enough played games
+
+                        string[] gamesinfos = DBH.getgamesinfo(client_id,gameswatched);
+                        foreach (string game in gamesinfos)
+                            if(game != null)
+                            {
+                                SendMessage("###gamedata###" + game);
+                                Thread.Sleep(100);
+                            }
+                    }
+                    else if (messageReceived.StartsWith("###getgame###")) //id"
+                    {//gets the last 15 games
+                        messageReceived = messageReceived.Remove(0, 13);
+                        //brodcast the whole new game to the client
+                        string[] game = DBH.getgame(client_id, Int32.Parse(messageReceived));
+                        SendMessage("###start_game###" + DBH.get_nickname(Int32.Parse(game[1])) + "&" + DBH.get_nickname(Int32.Parse(game[2])) + "&" + ((game[1].Equals(client_id.ToString())) ? "white":"black") + "&oldgame");
+                        Thread.Sleep(300);
+                        foreach (string move in game[3].Split('-'))
+                        {//X,Y cordinates of moves
+                            SendMessage("###move###" + move);//remove the ',' from the string
+                            Thread.Sleep(100);
+                        }
+                        
+                    }
+                    else if (messageReceived == "###ready_to_play_vs_friend###")
+                    {
+                        Boolean search_player = true;
+                        if (AllClients.Count > 1)
+                        {
+                            foreach (DictionaryEntry client in AllClients)
+                            {
+                                if (search_player)
+                                {
+                                    if (((ManageClient)(client.Value))._client != this._client && !((ManageClient)(client.Value)).detached && ((ManageClient)(client.Value)).ready_to_play)
+                                    {
+                                        ((ManageClient)(client.Value)).ready_to_play = false;//
+                                        this.ready_to_play = false;// both players cant play right now, they are already in a game
+                                        search_player = false;
+                                        this.game = new _1v1(((ManageClient)(client.Value)), this);
+                                        ((ManageClient)(client.Value)).game = this.game;
+                                    }
+                                }
+                            }
+                        }
+                        if (search_player == true) // didnt found a opponent to play with
+                            ready_to_play = true;
+                    }
+                    else if (messageReceived.StartsWith("###ready_to_play_vs_ai###"))
+                    {
+                        this.ready_to_play = false;
+                        this.game = new _1vsAI(this);
+                    }
+                    else if(this.game != null)//in the middle of a game..
+                    {
+                        if (messageReceived.Equals("###resignation###"))
+                        {
+                            this.game.ResignationHandler(this);
+                        }
+                        else if(this.my_turn) //if it is this clients turn
+                            this.game.GameMessageHandler(messageReceived);
+                    }
+                }
             }
         }
         /// <summary>

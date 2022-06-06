@@ -19,6 +19,7 @@ namespace chessair_client
         public static bool[] forms = { false, false, false, false };//login, register, change password, game
         public static int login = 0, register = 1, changePassword = 2, game = 3;
         public static Action<string> receive_message_handler;
+        private static string received = ""; // bytes read from the server but not handled yet (an incomplete message)
         
         [STAThread]
         // main function
@@ -62,7 +63,7 @@ namespace chessair_client
             {
                 // send message to the server
                 NetworkStream ns = client.GetStream();
-                byte[] data = System.Text.Encoding.ASCII.GetBytes(message);
+                byte[] data = System.Text.Encoding.ASCII.GetBytes(message + "\n"); // '\n' ends every message
                 //Thread.Sleep(100);
 
                 // send the text
@@ -128,22 +129,31 @@ namespace chessair_client
                 }
                 else
                 {
-                    // invoke the delegate to display the recived data
-                    string textFromServer = System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead);
-                    if (textFromServer.StartsWith("captcha%"))
+                    // every message ends with '\n'; one read can hold several messages or part of one
+                    string[] messages;
+                    lock (Program.data)
                     {
-                        receive_message_handler(textFromServer);
+                        messages = (received + System.Text.Encoding.ASCII.GetString(Program.data, 0, bytesRead)).Split('\n');
+                        received = messages[messages.Length - 1];
                     }
-                    else if (textFromServer.StartsWith("public key:"))
+                    for (int i = 0; i < messages.Length - 1; i++)
                     {
-                        Program.rsa.setPublicKey(textFromServer.Remove(0, 11));
+                        // invoke the delegate to display the recived data
+                        string textFromServer = messages[i];
+                        if (textFromServer.StartsWith("captcha%"))
+                        {
+                            receive_message_handler(textFromServer);
+                        }
+                        else if (textFromServer.StartsWith("public key:"))
+                        {
+                            Program.rsa.setPublicKey(textFromServer.Remove(0, 11));
+                        }
+                        else//incrypted message
+                        {
+                            textFromServer = rsa.Decrypt(textFromServer);
+                            receive_message_handler(textFromServer);
+                        }
                     }
-                    else//incrypted message
-                    {
-                        textFromServer = rsa.Decrypt(textFromServer);
-                        receive_message_handler(textFromServer);
-                    }
-
                 }
                 Keep_reading();
             }

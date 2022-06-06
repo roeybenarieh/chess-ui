@@ -96,7 +96,13 @@ namespace chess
         {
             this.c = chess;
             this.mo = new Move_list_ordering(chess);
-            //generate the precomputed squers to edge //very not ifficient but it doesnt matter that much because this operation only happens once and because Im lazy
+        }
+
+        // static constructor: the table is shared by every game, so it is built exactly once (thread-safe).
+        // Rebuilding it per game broke move generation of AI searches already running in other games.
+        static Movegenerator()
+        {
+            //generate the precomputed squers to edge
             squers_to_edge = new int[directions.Length][];
             for (int i =0; i < directions.Length; i++)
             {
