@@ -329,9 +329,8 @@ namespace chess_air_Server
                         else
                             data[i] = "neg";
                     }
-                    bool isAdminCode = data[0].Equals("admin");
                     bool captchaCorrect = data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2]);
-                    if (isAdminCode || (mailcode.Equals(data[0]) && captchaCorrect))
+                    if (mailcode.Equals(data[0]) && captchaCorrect)
                     {
                         string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
                         string[] last_date = DBH.get_last_password_change(this.client_id).Split('/');
@@ -340,7 +339,7 @@ namespace chess_air_Server
                         else
                             SendMessage("code done");
                     }
-                    else if (!isAdminCode && !mailcode.Equals(data[0]))
+                    else if (!mailcode.Equals(data[0]))
                         SendMessage("code incorect");
                     else
                         SendMessage("captcha incorect");
