@@ -26,6 +26,9 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g; s/security.debian.org/archive
 COPY --from=build ["/src/chess-ui/chess-air-server/bin/Release/", "./"]
 COPY --from=build ["/src/chess-ui/chess-air-server/bin/Debug/captcha", "./captcha"]
 
+# The server writes log.txt into /app at runtime; allow the non-root user used by the Kubernetes deployment.
+RUN chown -R 10001:10001 /app
+
 EXPOSE 500
 
 ENTRYPOINT ["mono", "chess air_Server.exe"]
