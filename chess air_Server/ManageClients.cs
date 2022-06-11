@@ -109,6 +109,51 @@ namespace chess_air_Server
         // so a phone that suspends the browser can reconnect to the same session
         public const int ResumeGraceSeconds = 300;
         private static readonly object SessionLock = new object();
+        private static readonly object LoginLock = new object();
+        private static readonly Dictionary<string, int> LoginFailures = new Dictionary<string, int>();
+        private static readonly Dictionary<string, DateTime> LoginBlockedUntil = new Dictionary<string, DateTime>();
+        private const int MaxLoginFailures = 5;
+        private static readonly TimeSpan LoginBlockTime = TimeSpan.FromMinutes(15);
+
+        private string LoginHost()
+        {
+            return _clientIP.Substring(0, _clientIP.LastIndexOf(':'));
+        }
+
+        private bool IsLoginBlocked()
+        {
+            lock (LoginLock)
+            {
+                DateTime until;
+                return LoginBlockedUntil.TryGetValue(LoginHost(), out until) && until > DateTime.UtcNow;
+            }
+        }
+
+        private void RecordLoginFailure()
+        {
+            lock (LoginLock)
+            {
+                string host = LoginHost();
+                int fails;
+                LoginFailures.TryGetValue(host, out fails);
+                fails++;
+                if (fails >= MaxLoginFailures)
+                {
+                    LoginBlockedUntil[host] = DateTime.UtcNow + LoginBlockTime;
+                    fails = 0;
+                }
+                LoginFailures[host] = fails;
+            }
+        }
+
+        private void ClearLoginFailures()
+        {
+            lock (LoginLock)
+            {
+                LoginFailures.Remove(LoginHost());
+                LoginBlockedUntil.Remove(LoginHost());
+            }
+        }
         private static readonly Dictionary<string, ManageClient> Sessions = new Dictionary<string, ManageClient>();
         private string session_token;
         private ManageClient session; // the object that reads this session's socket: this, or the connection it was resumed on
@@ -285,18 +330,28 @@ namespace chess_air_Server
                 {
                     String userdatatmp = messageReceived.Remove(0, 11);
                     String[] userdata = userdatatmp.Split('&');
-                    if (DBH.login(userdata))
+                    if (IsLoginBlocked())
                     {
+                        SendMessage("login not done");
+                    }
+                    else if (DBH.login(userdata))
+                    {
+                        ClearLoginFailures();
                         this.client_id = DBH.get_id(userdata);
                         this.session_token = Guid.NewGuid().ToString("N");
                         lock (SessionLock) { Sessions[session_token] = this; }
                         SendMessage("session:" + session_token);
                         var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
                         var stringChars = new char[10];
-                        var random = new Random();
-                        for (int i = 0; i < stringChars.Length; i++)
+                        // cryptographic RNG: System.Random is predictable from its seed
+                        using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
                         {
-                            stringChars[i] = chars[random.Next(chars.Length)];
+                            var bytes = new byte[stringChars.Length];
+                            rng.GetBytes(bytes);
+                            for (int i = 0; i < stringChars.Length; i++)
+                            {
+                                stringChars[i] = chars[bytes[i] % chars.Length];
+                            }
                         }
                         this.mailcode = new String(stringChars);
                         if (send_email("chessair - confirmation code", "your confirmation code: \n" + mailcode, DBH.get_mail(this.client_id)) || true)/////////////email doesnt count!!!!!!
@@ -315,6 +370,7 @@ namespace chess_air_Server
                     }
                     else
                     {
+                        RecordLoginFailure();
                         SendMessage("login not done");
                     }
                 }

@@ -49,8 +49,14 @@ namespace chess_air_Server
         { //f is thenth of a second
             using (StreamWriter w = File.AppendText("log.txt"))
             {
-                w.WriteLine(logMessage + "%" + ipAddress + "%" + DateTime.Now.ToString("dd/MM/yyyy :: HH:mm:ss.f"));
+                w.WriteLine(Sanitize(logMessage) + "%" + Sanitize(ipAddress) + "%" + DateTime.Now.ToString("dd/MM/yyyy :: HH:mm:ss.f"));
             }
+        }
+
+        // client-supplied text must not be able to start a new log line
+        private static string Sanitize(string value)
+        {
+            return (value ?? "").Replace("\r", " ").Replace("\n", " ");
         }
 
         /// <summary>
