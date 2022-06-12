@@ -10,7 +10,11 @@ let ws, rsa, connecting = false
 let token = null // session id from the server after login; sent on reconnect so the server continues the same session
 let received = '' // every message ends with '\n'; a WebSocket frame can hold several messages or part of one
 const handlers = {}
-const send = msg => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(new TextEncoder().encode(msg + '\n')) }
+const send = msg => {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false
+    ws.send(new TextEncoder().encode(msg + '\n'))
+    return true
+}
 
 // the connection can drop (phone suspends the page, network change): reconnect and resume the session
 async function connect() {
@@ -30,6 +34,7 @@ async function connect() {
     sock.onclose = () => {
         if (sock !== ws) return // replaced by a newer connection
         connecting = false
+        resetLoginPending()
         $('status').textContent = 'reconnecting to the server...'
         $('status').hidden = false
         setTimeout(connect, 2000)
@@ -58,6 +63,7 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || connecting) return
     const old = ws
     ws = null
+    resetLoginPending()
     if (old) old.close()
     connect()
 })
@@ -78,8 +84,14 @@ addEventListener('resize', fit)
 const loginOut = s => $('l-out').textContent = s
 const captcha = [] // 'pos' / 'neg' per captcha, unset = negative
 const badEdge = (re, ...fields) => fields.some(f => re.test(f))
+let loginPending = false
+function resetLoginPending() {
+    loginPending = false
+    $('loginbutton').disabled = false
+}
 
 $('loginbutton').onclick = () => {
+    if (loginPending) return
     const user = $('username').value, pass = $('password').value
     if ($('loginbutton').textContent === 'login') {
         loginOut('')
@@ -87,7 +99,10 @@ $('loginbutton').onclick = () => {
         else if (badEdge(/^['/]/, user, pass)) loginOut("you cant put ' or / at the begging of a field")
         else if (badEdge(/['/]$/, user, pass)) loginOut("you cant put ' or / at the end of a field")
         else if (badEdge(/&/, user, pass)) loginOut("you cant put '&' in a field")
-        else send('###login###' + user + '&' + pass)
+        else if (send('###login###' + user + '&' + pass)) {
+            loginPending = true
+            $('loginbutton').disabled = true
+        }
     } else { // verify
         send('###mail+capcha###' + pass + '%' + [0, 1, 2].map(i => captcha[i] === 'pos' ? 'True' : 'False').join('%'))
         loginOut('')
@@ -101,6 +116,7 @@ $('registration').onclick = () => {
 }
 
 handlers.login = t => {
+    if (t === 'login done' || t === 'login not done' || t === 'coudnt send mail') resetLoginPending()
     if (t.startsWith('captcha%')) {
         $('login').append(el('span', { className: 'captcha', textContent: t.slice(10), style: `left:62px;top:${t[8] * 80 + 30}px` }))
     } else if (t === 'login done') {
