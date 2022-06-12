@@ -289,6 +289,10 @@ namespace chess_air_Server
             else // client still connected
             {
                 //messageReceived = rsa.Decrypt(messageReceived);
+                // Once a challenge has started, queued login requests must not
+                // generate additional codes or send more emails on this session.
+                if (messageReceived.StartsWith("###login###") && session_token != null)
+                    return;
                 Console.WriteLine(messageReceived);
                 if (messageReceived.StartsWith("###login###"))// window1- login
                 {
