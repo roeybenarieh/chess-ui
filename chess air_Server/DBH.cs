@@ -45,21 +45,18 @@ namespace chess_air_Server
             for (int i = 0; i < username_password.Length; i++)
                 if (checkForSQLInjection(username_password[i]))
                     return false;
-            String stm = "select count(username)::int from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
-            int count = Convert.ToInt32(Scalar(stm));
-            if (count == 1) { return true; }
-            else { return false; }
+            return get_id(username_password) != -1;
         }
         /// <summary>
-        /// check if the username is already in the database and if so return it's ID
+        /// check if the username and password match an account and return its ID, or -1
         /// </summary>
         /// <param name="username_password"></param>
         /// <returns></returns>
         public static int get_id(String[] username_password) //get the id for future comunication with the DB- PK!
         {
-            String stm = "select Id from users where username='" + gethash(username_password[0]) + "' and password='" + gethash(username_password[1]) + "'";
-            int id = (int)Scalar(stm);
-            return id;
+            // the hashes are checked inside the database (check_login): the server never reads the password column
+            String stm = "select check_login('" + gethash(username_password[0]) + "', '" + gethash(username_password[1]) + "')";
+            return Convert.ToInt32(Scalar(stm));
         }
 
         /// <summary>
@@ -206,8 +203,8 @@ namespace chess_air_Server
         {
             if (checkForSQLInjection(username) || checkForSQLInjection(new_password))
                 return false;
-            String stm = "UPDATE users SET password = '" + gethash(new_password) + "', change_password = CURRENT_DATE WHERE username = '" + gethash(username) + "'; ";
-            int rows = Execute(stm);
+            String stm = "select set_password('" + gethash(username) + "', '" + gethash(new_password) + "')";
+            int rows = Convert.ToInt32(Scalar(stm));
             if (rows == 1)
                 return true;
             return false;
