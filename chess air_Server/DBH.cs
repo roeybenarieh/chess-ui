@@ -294,7 +294,8 @@ namespace chess_air_Server
         /// <param name="game"></param>
         public static void insert_game(string white_player_id, string black_player_id, string game)
         {
-            string stm = String.Format("insert into Games (wplayerid,bplayerid,moves) values ({0},{1},'{2}')", white_player_id, black_player_id, game);
+            // the moves text is built from client messages: doubling quotes keeps it inside its string literal
+            string stm = String.Format("insert into Games (wplayerid,bplayerid,moves) values ({0},{1},'{2}')", white_player_id, black_player_id, game.Replace("'", "''"));
             Execute(stm);
         }
         /// <summary>

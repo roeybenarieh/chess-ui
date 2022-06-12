@@ -104,6 +104,7 @@ namespace chess_air_Server
         }
         // bytes read from the client but not handled yet: every message ends with '\n', and TCP may merge or split messages
         private string received = "";
+        private const int MaxPendingBytes = 8192;
 
         // session resume: a logged-in client whose connection drops keeps its login, captcha and game for ResumeGraceSeconds,
         // so a phone that suspends the browser can reconnect to the same session
@@ -112,6 +113,7 @@ namespace chess_air_Server
 
         private static readonly Dictionary<string, ManageClient> Sessions = new Dictionary<string, ManageClient>();
         private string session_token;
+        private bool verified; // the email code and captcha were passed on this session; game messages need it
         private ManageClient session; // the object that reads this session's socket: this, or the connection it was resumed on
         private bool detached; // the socket was lost and the session is waiting for a resume
         private System.Threading.Timer grace_timer;
@@ -141,6 +143,12 @@ namespace chess_air_Server
                     return;
                 }
                 received += System.Text.Encoding.ASCII.GetString(data, 0, bytesRead);
+                if (received.Length > MaxPendingBytes) // no line end for this long: not a chess client
+                {
+                    _client.Close();
+                    OnSocketLost();
+                    return;
+                }
                 int end;
                 while ((end = received.IndexOf('\n')) >= 0)
                 {
@@ -290,6 +298,7 @@ namespace chess_air_Server
                     {
                         this.client_id = DBH.get_id(userdata);
                         this.session_token = Guid.NewGuid().ToString("N");
+                        this.verified = false;
                         lock (SessionLock) { Sessions[session_token] = this; }
                         SendMessage("session:" + session_token);
                         var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -338,6 +347,7 @@ namespace chess_air_Server
                     bool captchaCorrect = data[1].Equals(captcha[0]) && data[2].Equals(captcha[1]) && data[3].Equals(captcha[2]);
                     if (mailcode.Equals(data[0]) && captchaCorrect)
                     {
+                        verified = true;
                         string[] today_date = DateTime.Now.ToString("dd/MM/yyyy").Split('/');
                         string[] last_date = DBH.get_last_password_change(this.client_id).Split('/');
                         if (!today_date[1].Equals(last_date[1]) && false)//every start of a new month new password need to be created.
@@ -412,6 +422,8 @@ namespace chess_air_Server
                 }
                 else // window3- game
                 {
+                    if (!verified) // password alone is not enough: the email code must be confirmed first
+                        return;
                     if (messageReceived.StartsWith("###getplayedgames###"))
                     {//gets the last 15 games
                         messageReceived = messageReceived.Remove(0, 20);

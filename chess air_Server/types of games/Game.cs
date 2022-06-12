@@ -100,6 +100,8 @@ namespace chess_air_Server.types_of_games
         internal Move find_legal_move(string messageReceived)
         {
             messageReceived = messageReceived.Remove(0, 10);
+            if (messageReceived.Length != 4 && messageReceived.Length != 5) // XYXY, plus an optional promotion digit
+                return new Move(-1, -1);
             int starti = char_to_int(messageReceived[0]);
             int startj = char_to_int(messageReceived[1]);
             if (this.chessboard.board[starti * Chessboard.board_size + startj].Isocupied()) //if the peace exists - if not, probably hackers ;-)
